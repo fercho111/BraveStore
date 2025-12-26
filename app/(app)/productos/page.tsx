@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { toggleProductoActivo } from './actions';
+import { createClient } from '@/lib/supabase/server';
 
 type ProductoRow = {
   id: string;
@@ -105,18 +106,26 @@ export default async function ProductosPage() {
                     <td style={tdStyleRight}>{formatMoney(p.precio)}</td>
 
                     <td style={tdStyle}>
-                    <span
-                        style={{
-                        display: 'inline-block',
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: 999,
-                        fontSize: '0.85rem',
-                        border: '1px solid #ddd',
-                        background: p.activo ? '#f5fff7' : '#fff5f5',
-                        }}
-                    >
-                        {p.activo ? 'Sí' : 'No'}
-                    </span>
+                      <form action={toggleProductoActivo}>
+                        <input type="hidden" name="producto_id" value={p.id} />
+                        <button
+                          type="submit"
+                          style={{
+                            display: 'inline-block',
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: 999,
+                            fontSize: '0.85rem',
+                            border: `1px solid ${p.activo ? '#25f54e' : '#e81313'}`,
+                            color: p.activo ? '#25f54e' : '#e81313',
+                            background: 'transparent',
+                            cursor: 'pointer',
+                          }}
+                          aria-label={`Marcar producto como ${p.activo ? 'inactivo' : 'activo'}`}
+                          title="Cambiar estado"
+                        >
+                          {p.activo ? 'Sí' : 'No'}
+                        </button>
+                      </form>
                     </td>
                 </tr>
                 ))
@@ -135,7 +144,7 @@ const thStyle: React.CSSProperties = {
   fontWeight: 600,
   padding: '0.75rem',
   borderBottom: '1px solid #ddd',
-  background: '#fafafa',
+  background: '#7f00e0',
   whiteSpace: 'nowrap',
 };
 
@@ -147,7 +156,7 @@ const tdStyle: React.CSSProperties = {
 
 const tdStyleRight: React.CSSProperties = {
   ...tdStyle,
-  textAlign: 'right',
+  textAlign: 'left',
   fontVariantNumeric: 'tabular-nums',
 };
 

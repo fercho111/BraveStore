@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { toggleProductoActivo } from './actions';
 import { createClient } from '@/lib/supabase/server';
 
@@ -14,6 +15,14 @@ type ProductoRow = {
 
 export default async function ProductosPage() {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   // Fetch products (display all except id + creado_en)
   const { data, error } = await supabase

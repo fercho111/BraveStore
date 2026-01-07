@@ -1,7 +1,20 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createProducto } from '../actions';
+import { createClient } from '@/lib/supabase/server';
 
-export default function NuevoProductoPage() {
+export default async function NuevoProductoPage() {
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
   return (
     <main style={{ padding: '1.5rem', maxWidth: 720 }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>

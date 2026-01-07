@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 
 type ClienteRow = {
   id: string;
@@ -12,6 +13,13 @@ type ClienteRow = {
 export default async function ClientesPage() {
   const supabase = await createClient();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
   // Fetch clients (display all except id + creado_en)
   const { data, error } = await supabase
     .from('clientes')

@@ -8,7 +8,7 @@ export default async function AppLayout({
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: '100vh' }}>
       <aside style={{ padding: '1rem', borderRight: '1px solid #ddd' }}>
-        <h2>Brave Store</h2>
+        <h2><Link href="/">Brave Store</Link></h2>
         <nav style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
           <Link href="/productos">Productos</Link>
           <Link href="/inventario">Inventario</Link>

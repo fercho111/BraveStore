@@ -55,8 +55,22 @@ export default async function ClientesPage() {
             Total: {clientes.length}
           </p>
         </div>
-        {/* Later: link to /clientes/nuevo */}
-        {/* <Link href="/clientes/nuevo">Nuevo cliente</Link> */}
+        <Link
+          href="/clientes/nuevo"
+          style={{
+        display: 'inline-block',
+        padding: '0.5rem 1rem',
+        backgroundColor: '#7f00e0',
+        color: 'white',
+        textDecoration: 'none',
+        borderRadius: '0.375rem',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+          }}
+        >
+          Nuevo cliente
+        </Link>
       </header>
 
       <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
@@ -112,7 +126,7 @@ const thStyle: React.CSSProperties = {
   fontWeight: 600,
   padding: '0.75rem',
   borderBottom: '1px solid #ddd',
-  background: '#fafafa',
+  background: '#7f00e0',
   whiteSpace: 'nowrap',
 };
 
@@ -120,4 +134,10 @@ const tdStyle: React.CSSProperties = {
   padding: '0.75rem',
   borderBottom: '1px solid #eee',
   verticalAlign: 'top',
+};
+
+const tdStyleRight: React.CSSProperties = {
+  ...tdStyle,
+  textAlign: 'left',
+  fontVariantNumeric: 'tabular-nums',
 };

@@ -57,11 +57,25 @@ export default async function ProductosPage() {
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Productos</h1>
           <p style={{ marginTop: '0.25rem', color: '#555' }}>
-            Total: {productos.length}
+        Total: {productos.length}
           </p>
         </div>
-        {/* Later: link to /productos/nuevo */}
-        {/* <Link href="/productos/nuevo">Nuevo producto</Link> */}
+        <Link
+          href="/productos/nuevo"
+          style={{
+        display: 'inline-block',
+        padding: '0.5rem 1rem',
+        backgroundColor: '#7f00e0',
+        color: 'white',
+        textDecoration: 'none',
+        borderRadius: '0.375rem',
+        fontSize: '0.95rem',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+          }}
+        >
+          Nuevo producto
+        </Link>
       </header>
 
       <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
@@ -174,5 +188,5 @@ function formatMoney(value: string | number) {
   if (!Number.isFinite(n)) return String(value);
 
   // Keep it simple; later you can localize (es-CO) if desired
-  return n.toFixed(2);
+  return n.toFixed(0);
 }

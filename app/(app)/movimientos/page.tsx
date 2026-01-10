@@ -1,9 +1,9 @@
-// app/(app)/inventario/page.tsx
+// app/(app)/movimientos/page.tsx
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 
-type InventarioRow = {
+type MovimientoRow = {
   id: string;
   creado_en: string;
   tipo: 'REPOSICION' | 'VENTA' | 'AJUSTE';
@@ -22,7 +22,7 @@ type InventarioRow = {
   } | null;
 };
 
-export default async function InventarioPage() {
+export default async function MovimientosPage() {
   const supabase = await createClient();
 
   const {
@@ -55,7 +55,7 @@ export default async function InventarioPage() {
   if (error) {
     return (
       <main style={{ padding: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Inventario</h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Movimientos</h1>
         <p style={{ marginTop: '1rem', color: 'crimson' }}>
           Error cargando inventario: {error.message}
         </p>
@@ -63,7 +63,7 @@ export default async function InventarioPage() {
     );
   }
 
-  const movimientos: InventarioRow[] = (data ?? []) as any;
+  const movimientos: MovimientoRow[] = (data ?? []) as any;
 
   return (
     <main style={{ padding: '1.5rem' }}>
@@ -83,7 +83,7 @@ export default async function InventarioPage() {
         </div>
 
         <Link
-        href="/inventario/nuevo"
+        href="/movimientos/nuevo"
         style={{
         display: 'inline-block',
         padding: '0.5rem 1rem',
@@ -221,7 +221,7 @@ const tdStyle: React.CSSProperties = {
   whiteSpace: 'nowrap',
 };
 
-function tipoBadgeStyle(tipo: InventarioRow['tipo']): React.CSSProperties {
+function tipoBadgeStyle(tipo: MovimientoRow['tipo']): React.CSSProperties {
   const base: React.CSSProperties = {
     display: 'inline-block',
     padding: '0.15rem 0.5rem',

@@ -34,7 +34,7 @@ export default async function NuevoProductoPage() {
         <div style={gridStyle}>
           <label style={labelStyle}>
             Código (SKU)
-            <input name="codigo" required placeholder="PR-001" style={inputStyle} />
+            <input name="codigo" required  style={inputStyle} />
           </label>
 
           <label style={labelStyle}>
@@ -42,7 +42,6 @@ export default async function NuevoProductoPage() {
             <input
               name="nombre_producto"
               required
-              placeholder="Proteína 2lb"
               style={inputStyle}
             />
           </label>
@@ -53,7 +52,6 @@ export default async function NuevoProductoPage() {
               name="precio"
               required
               inputMode="decimal"
-              placeholder="0.00"
               style={inputStyle}
             />
           </label>
@@ -64,7 +62,6 @@ export default async function NuevoProductoPage() {
               name="costo"
               required
               inputMode="decimal"
-              placeholder="0.00"
               style={inputStyle}
             />
           </label>

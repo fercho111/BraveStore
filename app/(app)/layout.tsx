@@ -11,7 +11,7 @@ export default async function AppLayout({
         <h2><Link href="/">Brave Store</Link></h2>
         <nav style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
           <Link href="/productos">Productos</Link>
-          <Link href="/inventario">Inventario</Link>
+          <Link href="/movimientos">Movimientos</Link>
           <Link href="/ventas">Ventas</Link>
           <Link href="/clientes">Clientes</Link>
           <Link href="/deudas">Deudas</Link>

@@ -32,7 +32,6 @@ function parseMoney(formData: FormData, key: string): number | null {
 export async function createMovimiento(formData: FormData) {
   const supabase = await createClient();
 
-  // Auth guard
   const {
     data: { user },
     error: sessionError,
@@ -103,5 +102,5 @@ export async function createMovimiento(formData: FormData) {
 
   // TODO (futuro): actualizar productos.costo (WAC) en caso de REPOSICION
 
-  redirect('/movimientos');
+  redirect('/inventario');
 }

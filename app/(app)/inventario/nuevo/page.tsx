@@ -11,7 +11,7 @@ type ProductoOption = {
   nombre_producto: string;
 };
 
-export default async function NuevoMovimientoPage() {
+export default async function NuevoInventarioPage() {
   const supabase = await createClient();
 
   // Auth guard
@@ -64,7 +64,7 @@ export default async function NuevoMovimientoPage() {
           </p>
         </div>
 
-        <Link href="/movimientos">Volver</Link>
+        <Link href="/inventario">Volver</Link>
       </header>
 
       <form action={createMovimiento} style={{ marginTop: '1.25rem' }}>
@@ -133,7 +133,7 @@ export default async function NuevoMovimientoPage() {
         <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
           <SubmitButton />
 
-          <Link href="/movimientos" style={secondaryButtonStyle}>
+          <Link href="/inventario" style={secondaryButtonStyle}>
             Cancelar
           </Link>
         </div>

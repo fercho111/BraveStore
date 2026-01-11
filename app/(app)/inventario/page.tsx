@@ -1,28 +1,9 @@
-// app/(app)/movimientos/page.tsx
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { MovimientoRow } from '@/lib/utils/types';
 
-type MovimientoRow = {
-  id: string;
-  creado_en: string;
-  tipo: 'REPOSICION' | 'VENTA' | 'AJUSTE';
-  cantidad_cambio: number;
-  costo_unitario_entrada: string | number | null;
-  nota: string | null;
-  referencia_venta_id: string | null;
-  productos: {
-    id: string;
-    codigo: string;
-    nombre_producto: string;
-  } | null;
-  empleados: {
-    id: string;
-    nombre: string | null;
-  } | null;
-};
-
-export default async function MovimientosPage() {
+export default async function InventarioPage() {
   const supabase = await createClient();
 
   const {
@@ -66,36 +47,16 @@ export default async function MovimientosPage() {
   const movimientos: MovimientoRow[] = (data ?? []) as any;
 
   return (
-    <main style={{ padding: '1.5rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: '1rem',
-        }}
-      >
+    <main>
+      <header>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Inventario</h1>
+          <h1>Inventario</h1>
           <p style={{ marginTop: '0.25rem', color: '#555' }}>
             Últimos {movimientos.length} movimientos
           </p>
         </div>
 
-        <Link
-        href="/movimientos/nuevo"
-        style={{
-        display: 'inline-block',
-        padding: '0.5rem 1rem',
-        backgroundColor: '#7f00e0',
-        color: 'white',
-        textDecoration: 'none',
-        borderRadius: '0.375rem',
-        fontSize: '0.95rem',
-        fontWeight: 500,
-        whiteSpace: 'nowrap',
-          }}
-        >
+        <Link href="/inventario/nuevo" className="btn-primary">
           Nuevo movimiento
         </Link>
         {/* Later: link to /inventario/entrada and /inventario/ajuste */}
@@ -106,23 +67,17 @@ export default async function MovimientosPage() {
       </header>
 
       <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            minWidth: '980px',
-          }}
-        >
+        <table>
           <thead>
             <tr>
-              <th style={thStyle}>Fecha</th>
-              <th style={thStyle}>Producto</th>
-              <th style={thStyle}>Tipo</th>
-              <th style={thStyle}>Cantidad</th>
-              <th style={thStyle}>Costo entrada</th>
-              <th style={thStyle}>Empleado</th>
-              <th style={thStyle}>Ref. venta</th>
-              <th style={thStyle}>Nota</th>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th>Tipo</th>
+              <th>Cantidad</th>
+              <th>Costo entrada</th>
+              <th>Empleado</th>
+              <th>Ref. venta</th>
+              <th>Nota</th>
             </tr>
           </thead>
 
@@ -143,9 +98,9 @@ export default async function MovimientosPage() {
 
                 return (
                   <tr key={m.id}>
-                    <td style={tdStyle}>{formatDateTime(m.creado_en)}</td>
+                    <td>{formatDateTime(m.creado_en)}</td>
 
-                    <td style={tdStyle}>
+                    <td>
                       {prod ? (
                         <Link
                           href={`/productos/${prod.id}`}
@@ -158,21 +113,21 @@ export default async function MovimientosPage() {
                       )}
                     </td>
 
-                    <td style={tdStyle}>
+                    <td>
                       <span style={tipoBadgeStyle(m.tipo)}>{m.tipo}</span>
                     </td>
 
-                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                    <td style={{textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                       <span style={cantidadStyle(qty)}>{qtyLabel}</span>
                     </td>
 
-                    <td style={{ ...tdStyle, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                    <td style={{textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
                       {m.tipo === 'REPOSICION'
                         ? formatMoney(m.costo_unitario_entrada ?? '')
                         : '—'}
                     </td>
 
-                    <td style={tdStyle}>
+                    <td>
                       {emp?.nombre?.trim()
                         ? emp.nombre
                         : emp?.id
@@ -180,7 +135,7 @@ export default async function MovimientosPage() {
                         : '—'}
                     </td>
 
-                    <td style={tdStyle}>
+                    <td>
                       {m.referencia_venta_id ? (
                         <Link
                           href={`/ventas/${m.referencia_venta_id}`}
@@ -193,7 +148,7 @@ export default async function MovimientosPage() {
                       )}
                     </td>
 
-                    <td style={tdStyle}>{m.nota ?? '—'}</td>
+                    <td>{m.nota ?? '—'}</td>
                   </tr>
                 );
               })
@@ -204,22 +159,6 @@ export default async function MovimientosPage() {
     </main>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  fontWeight: 600,
-  padding: '0.75rem',
-  borderBottom: '1px solid #ddd',
-  background: '#7f00e0',
-  whiteSpace: 'nowrap',
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: '0.75rem',
-  borderBottom: '1px solid #eee',
-  verticalAlign: 'top',
-  whiteSpace: 'nowrap',
-};
 
 function tipoBadgeStyle(tipo: MovimientoRow['tipo']): React.CSSProperties {
   const base: React.CSSProperties = {

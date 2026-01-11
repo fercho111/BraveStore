@@ -2,16 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { toggleProductoActivo } from './actions';
 import { createClient } from '@/lib/supabase/server';
-
-type ProductoRow = {
-  id: string;
-  codigo: string;
-  nombre_producto: string;
-  costo: string | number;
-  precio: string | number;
-  activo: boolean;
-  creado_en: string;
-};
+import { ProductoRow } from '@/lib/utils/types';
 
 export default async function ProductosPage() {
   const supabase = await createClient();
@@ -45,54 +36,28 @@ export default async function ProductosPage() {
   const productos: ProductoRow[] = data ?? [];
 
   return (
-    <main style={{ padding: '1.5rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: '1rem',
-        }}
-      >
+    <main>
+      <header>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Productos</h1>
+          <h1>Productos</h1>
           <p style={{ marginTop: '0.25rem', color: '#555' }}>
         Total: {productos.length}
           </p>
         </div>
-        <Link
-          href="/productos/nuevo"
-          style={{
-        display: 'inline-block',
-        padding: '0.5rem 1rem',
-        backgroundColor: '#7f00e0',
-        color: 'white',
-        textDecoration: 'none',
-        borderRadius: '0.375rem',
-        fontSize: '0.95rem',
-        fontWeight: 500,
-        whiteSpace: 'nowrap',
-          }}
-        >
+        <Link href="/productos/nuevo" className="btn-primary">
           Nuevo producto
         </Link>
       </header>
 
       <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            minWidth: '720px',
-          }}
-        >
+        <table>
           <thead>
             <tr>
-              <th style={thStyle}>Código</th>
-              <th style={thStyle}>Producto</th>
-              <th style={thStyle}>Costo</th>
-              <th style={thStyle}>Precio</th>
-              <th style={thStyle}>Activo</th>
+              <th>Código</th>
+              <th>Producto</th>
+              <th>Costo</th>
+              <th>Precio</th>
+              <th>Activo</th>
             </tr>
           </thead>
 
@@ -161,15 +126,6 @@ export default async function ProductosPage() {
     </main>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  fontWeight: 600,
-  padding: '0.75rem',
-  borderBottom: '1px solid #ddd',
-  background: '#7f00e0',
-  whiteSpace: 'nowrap',
-};
 
 const tdStyle: React.CSSProperties = {
   padding: '0.75rem',

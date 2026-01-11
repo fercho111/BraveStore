@@ -1,14 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-
-type ClienteRow = {
-  id: string;
-  nombre: string;
-  documento: string;
-  celular: string;
-  creado_en: string;
-};
+import { ClienteRow } from '@/lib/utils/types';
 
 export default async function ClientesPage() {
   const supabase = await createClient();

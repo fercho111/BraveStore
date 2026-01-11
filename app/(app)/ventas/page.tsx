@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { formatMoney, formatDateTime, formatCellValue } from '@/lib/utils/helpers';
 
 type VentaRow = {
   id: string;
@@ -77,57 +78,31 @@ export default async function VentasPage() {
   const ventas: VentaRow[] = (data ?? []) as VentaRow[];
 
   return (
-    <main style={{ padding: '1.5rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: '1rem',
-        }}
-      >
+    <main>
+      <header>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Ventas</h1>
+          <h1>Ventas</h1>
           <p style={{ marginTop: '0.25rem', color: '#555' }}>
             Total: {ventas.length}
           </p>
         </div>
 
-        <Link
-          href="/ventas/nueva"
-          style={{
-        display: 'inline-block',
-        padding: '0.5rem 1rem',
-        backgroundColor: '#7f00e0',
-        color: 'white',
-        textDecoration: 'none',
-        borderRadius: '0.375rem',
-        fontSize: '0.95rem',
-        fontWeight: 500,
-        whiteSpace: 'nowrap',
-          }}
-        >
+        <Link href="/ventas/nueva" className='btn-primary'>
           Nueva venta
         </Link>
       </header>
 
       <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            minWidth: '720px',
-          }}
-        >
+        <table>
           <thead>
             <tr>
               {COLUMNS.map((c) => (
-                <th key={c.key} style={thStyle}>
+                <th key={c.key}>
                   {c.label}
                 </th>
               ))}
               {/* Optional actions column (safe to remove) */}
-              <th style={thStyle}>Detalle</th>
+              <th>Detalle</th>
             </tr>
           </thead>
 
@@ -176,14 +151,6 @@ export default async function VentasPage() {
   );
 }
 
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  fontWeight: 600,
-  padding: '0.75rem',
-  borderBottom: '1px solid #ddd',
-  background: '#7f00e0',
-  whiteSpace: 'nowrap',
-};
 
 const tdStyle: React.CSSProperties = {
   padding: '0.75rem',
@@ -197,37 +164,7 @@ const tdStyleRight: React.CSSProperties = {
   fontVariantNumeric: 'tabular-nums',
 };
 
-function formatMoney(value: unknown) {
-  if (value === null || value === undefined || value === '') return '—';
-  const n = typeof value === 'string' ? Number(value) : (value as number);
-  if (!Number.isFinite(n)) return String(value);
-  return n.toFixed(0);
-}
 
-function formatDateTime(value: unknown) {
-  if (!value) return '—';
-  // Keep it simple and stable server-side; you can localize later if desired.
-  // Works if 'creado_en' is an ISO string or Postgres timestamp string.
-  const d = new Date(String(value));
-  if (Number.isNaN(d.getTime())) return String(value);
-  return d.toISOString().slice(0, 16).replace('T', ' ');
-}
 
-function formatCellValue(value: unknown, key?: string) {
-  if (value === null || value === undefined || value === '') return '—';
 
-  // Default formatting fallbacks (helps when you add columns later)
-  if (key === 'total' || key === 'pagado') return formatMoney(value);
-  if (key === 'creado_en') return formatDateTime(value);
 
-  if (typeof value === 'boolean') return value ? 'Sí' : 'No';
-  if (typeof value === 'number') return String(value);
-  if (typeof value === 'string') return value;
-
-  // For objects/arrays (e.g. JSON columns), show a compact representation
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return String(value);
-  }
-}

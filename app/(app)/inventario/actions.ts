@@ -56,8 +56,6 @@ export async function createMovimiento(formData: FormData) {
 
   const cantidadInput = parseIntAllowSign(formData, 'cantidad');
   const costo_unitario_entrada_raw = parseMoney(formData, 'costo_unitario_entrada');
-  const notaRaw = String(formData.get('nota') ?? '').trim();
-  const nota = notaRaw.length > 0 ? notaRaw : null;
 
   let cantidad_cambio: number;
   let costo_unitario_entrada: number | null = null;
@@ -93,7 +91,6 @@ export async function createMovimiento(formData: FormData) {
     cantidad_cambio,
     costo_unitario_entrada,
     empleado_id: userId,
-    nota,
   });
 
   if (error) {

@@ -5,7 +5,7 @@ import { ProductoRow, InventarioRow, KardexRow } from '@/lib/utils/types';
 import { Row } from '@/components/Row';
 import { Td } from '@/components/Td';
 import { Th } from '@/components/Th';
-import { formatMoney } from '@/lib/utils/helpers';
+import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
 
 type PageProps = {
   params: {
@@ -94,7 +94,7 @@ export default async function ProductoDetallePage({ params }: PageProps) {
         />
         <Row
           label="Creado"
-          value={new Date(producto.creado_en).toLocaleString()}
+          value={formatDateTime(producto.creado_en)}
         />
       </dl>
       <section style={{ marginTop: '2rem' }}>

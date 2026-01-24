@@ -31,17 +31,9 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
     },
   ]);
 
-  // --- ESTADO DEL CLIENTE ---
-  const [documento, setDocumento] = useState("");
-  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
-  const [clienteError, setClienteError] = useState<string | null>(null);
-
-  function getProductoById(id: string) {
-    return productos.find((p) => p.id === id) || null;
-  }
-
-  function agregarLinea() {
-    const nuevaLinea: LineaDeVenta = {
+  // Add this helper near the top (inside the component file, outside functions is fine)
+  function crearLineaVacia(): LineaDeVenta {
+    return {
       id: String(Date.now()),
       productoId: "",
       cantidad: 1,
@@ -49,7 +41,32 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
       codigoTexto: "",
       nombreTexto: "",
     };
-    setLineas((prev) => [...prev, nuevaLinea]);
+  }
+
+  // --- ESTADO DEL CLIENTE ---
+  const [documento, setDocumento] = useState("");
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<Cliente | null>(null);
+  const [clienteError, setClienteError] = useState<string | null>(null);
+  const [pagoCliente, setPagoCliente] = useState<string>("");
+  const [pagoError, setPagoError] = useState<string | null>(null);
+
+
+  function getProductoById(id: string) {
+    return productos.find((p) => p.id === id) || null;
+  }
+  function calcularTotalVenta(lineas: LineaDeVenta[], productos: Producto[]): number {
+    return lineas
+      .filter((l) => l.locked && l.productoId && l.cantidad >= 1)
+      .reduce((total, linea) => {
+        const producto = productos.find((p) => p.id === linea.productoId);
+        if (!producto) return total;
+        return total + producto.precio * linea.cantidad;
+      }, 0);
+  }
+
+
+  function agregarLinea() {
+    setLineas((prev) => [...prev, crearLineaVacia()]);
   }
 
   // Cambiar por código (con autocomplete)
@@ -67,9 +84,10 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
         if (producto) {
           actualizado.productoId = producto.id;
           actualizado.nombreTexto = producto.nombre_producto;
-          actualizado.locked = true; // se bloquea al seleccionar un producto válido
+          actualizado.locked = false; // <-- no bloquear aquí
         } else {
           actualizado.productoId = "";
+          actualizado.nombreTexto = "";
           actualizado.locked = false;
         }
 
@@ -93,9 +111,10 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
         if (producto) {
           actualizado.productoId = producto.id;
           actualizado.codigoTexto = producto.codigo;
-          actualizado.locked = true;
+          actualizado.locked = false; // <-- no bloquear aquí
         } else {
           actualizado.productoId = "";
+          actualizado.codigoTexto = "";
           actualizado.locked = false;
         }
 
@@ -103,6 +122,7 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
       })
     );
   }
+
 
   function cambiarCantidad(lineaId: string, nuevaCantidad: number) {
     if (Number.isNaN(nuevaCantidad) || nuevaCantidad < 1) return;
@@ -136,14 +156,39 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
   }
 
   function bloquearLineaSiValida(lineaId: string) {
-    setLineas((prev) =>
-      prev.map((linea) => {
-        if (linea.id !== lineaId) return linea;
-        if (!linea.productoId || linea.cantidad < 1) return linea;
-        return { ...linea, locked: true };
-      })
-    );
+    setLineas((prev) => {
+      const idx = prev.findIndex((l) => l.id === lineaId);
+      if (idx === -1) return prev;
+
+      const linea = prev[idx];
+      if (!linea.productoId || linea.cantidad < 1) return prev;
+
+      // Buscar otra línea con el mismo producto (duplicado)
+      const dupIdx = prev.findIndex(
+        (l, i) => i !== idx && l.productoId === linea.productoId
+      );
+
+      // Si existe duplicado -> sumar cantidad al existente y eliminar la línea actual
+      if (dupIdx !== -1) {
+        const next = [...prev];
+
+        next[dupIdx] = {
+          ...next[dupIdx],
+          cantidad: next[dupIdx].cantidad + linea.cantidad,
+          locked: true, // queda confirmada
+        };
+
+        next.splice(idx, 1); // elimina la línea duplicada que se intentó agregar
+        return next.length ? next : [crearLineaVacia()];
+      }
+
+      // Si no hay duplicado -> simplemente bloquear la línea actual
+      return prev.map((l) =>
+        l.id === lineaId ? { ...l, locked: true } : l
+      );
+    });
   }
+
 
   // ---------- CLIENTE: BÚSQUEDA POR DOCUMENTO (SIN AUTOCOMPLETE) ----------
 
@@ -175,6 +220,40 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
     );
 
   const ventaLista = todasBloqueadasYValidas && clienteSeleccionado !== null;
+
+  const totalVenta = calcularTotalVenta(lineas, productos);
+
+  function validarPago(valor: string) {
+    setPagoCliente(valor);
+
+    if (valor === "") {
+      setPagoError("Ingrese cuánto paga el cliente.");
+      return;
+    }
+
+    const numero = Number(valor);
+
+    if (!Number.isInteger(numero)) {
+      setPagoError("El valor debe ser un número entero.");
+      return;
+    }
+
+    if (Number.isNaN(numero) || numero < 0) {
+      setPagoError("El valor no puede ser negativo.");
+      return;
+    }
+
+    if (numero > totalVenta) {
+      setPagoError("El valor no puede ser mayor al total de la venta.");
+      return;
+    }
+
+    setPagoError(null);
+  }
+
+  const pagoValido = pagoCliente !== "" && pagoError === null;
+  const ventaConfirmable = ventaLista && pagoValido;
+
 
   // --------- DATOS QUE REALMENTE SE VAN A ENVIAR AL SERVIDOR ---------
 
@@ -238,12 +317,12 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
               fontWeight: 600,
               borderRadius: "0.5rem",
               border: "none",
-              cursor: ventaLista ? "pointer" : "not-allowed",
-              backgroundColor: ventaLista ? "#16a34a" : "#9ca3af",
+              cursor: ventaConfirmable ? "pointer" : "not-allowed",
+              backgroundColor: ventaConfirmable ? "#16a34a" : "#9ca3af",
               color: "white",
               whiteSpace: "nowrap",
             }}
-            disabled={!ventaLista}
+            disabled={!ventaConfirmable}
           >
             Confirmar venta
           </button>
@@ -680,6 +759,87 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
             </div>
           )}
         </section>
+
+        {/* ----------- RESUMEN TOTAL ----------- */}
+        <section
+          style={{
+            border: "1px solid #e5e7eb",
+            borderRadius: "0.75rem",
+            padding: "0.75rem 1rem",
+            marginBottom: "1rem",
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "0.5rem",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "1rem",
+                fontWeight: 600,
+              }}
+            >
+              Total de la venta:{" "}
+              <span style={{ fontWeight: 700 }}>
+                ${totalVenta.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            {ventaLista && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: "0.25rem",
+                  marginTop: "0.25rem",
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  ¿Cuánto paga el cliente ahora?
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  name='pagoCliente'
+                  value={pagoCliente}
+                  onChange={(e) => validarPago(e.target.value)}
+                  style={{
+                    width: "160px",
+                    padding: "0.35rem 0.6rem",
+                    borderRadius: "0.5rem",
+                    border: "1px solid #d1d5db",
+                    fontSize: "0.9rem",
+                    textAlign: "right",
+                  }}
+                />
+                {pagoError && (
+                  <span
+                    style={{
+                      fontSize: "0.8rem",
+                      color: "#b91c1c",
+                      textAlign: "right",
+                    }}
+                  >
+                    {pagoError}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
 
         <section style={{ marginTop: "1.5rem", fontSize: "0.95rem" }}>
           {!ventaLista ? (

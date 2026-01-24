@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { toggleProductoActivo } from './actions';
 import { createClient } from '@/lib/supabase/server';
 import { ProductoRow } from '@/lib/utils/types';
+import { formatMoney } from '@/lib/utils/helpers';
 
 export default async function ProductosPage() {
   const supabase = await createClient();
@@ -33,7 +34,22 @@ export default async function ProductosPage() {
     );
   }
 
+    // Fetch current stock per product from the view
+  const { data: stockData } = await supabase
+    .from('v_stock_actual')
+    .select('producto_id, stock');
+
+
   const productos: ProductoRow[] = data ?? [];
+
+  type StockRow = { producto_id: string; stock: number | null };
+
+  const stockByProductoId = new Map<string, number>(
+    ((stockData ?? []) as StockRow[]).map((row) => [
+      row.producto_id,
+      row.stock ?? 0,
+    ]),
+  );
 
   return (
     <main>
@@ -57,6 +73,7 @@ export default async function ProductosPage() {
               <th>Producto</th>
               <th>Costo</th>
               <th>Precio</th>
+              <th>Stock</th>
               <th>Activo</th>
             </tr>
           </thead>
@@ -64,7 +81,7 @@ export default async function ProductosPage() {
           <tbody>
             {productos.length === 0 ? (
                 <tr>
-                <td colSpan={5} style={{ padding: '0.75rem', color: '#666' }}>
+                <td colSpan={6} style={{ padding: '0.75rem', color: '#666' }}>
                     No hay productos registrados.
                 </td>
                 </tr>
@@ -92,6 +109,10 @@ export default async function ProductosPage() {
                     <td style={tdStyleRight}>{formatMoney(p.costo)}</td>
 
                     <td style={tdStyleRight}>{formatMoney(p.precio)}</td>
+
+                    <td style={tdStyleRight}>
+                      {stockByProductoId.get(p.id) ?? 0}
+                    </td>
 
                     <td style={tdStyle}>
                       <form action={toggleProductoActivo}>
@@ -138,11 +159,3 @@ const tdStyleRight: React.CSSProperties = {
   textAlign: 'left',
   fontVariantNumeric: 'tabular-nums',
 };
-
-function formatMoney(value: string | number) {
-  const n = typeof value === 'string' ? Number(value) : value;
-  if (!Number.isFinite(n)) return String(value);
-
-  // Keep it simple; later you can localize (es-CO) if desired
-  return n.toFixed(0);
-}

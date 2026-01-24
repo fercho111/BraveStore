@@ -4,7 +4,6 @@ export type MovimientoRow = {
   tipo: 'REPOSICION' | 'VENTA' | 'AJUSTE';
   cantidad_cambio: number;
   costo_unitario_entrada: string | number | null;
-  nota: string | null;
   referencia_venta_id: string | null;
   productos: {
     id: string;
@@ -63,3 +62,11 @@ export type KardexRow = {
   nota: string | null;
 };
 
+export type VentaRow = {
+  id: string;
+  total: string | number | null;
+  pagado: string | number | null;
+  creado_en: string | null;
+  // Support future columns without changing the rendering approach:
+  [key: string]: unknown;
+};

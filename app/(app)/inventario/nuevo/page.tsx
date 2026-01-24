@@ -115,19 +115,6 @@ export default async function NuevoInventarioPage() {
               style={inputStyle}
             />
           </label>
-
-          <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
-            Nota (opcional)
-            <textarea
-              name="nota"
-              rows={3}
-              style={{
-                ...inputStyle,
-                resize: 'vertical',
-                minHeight: '4rem',
-              }}
-            />
-          </label>
         </div>
 
         <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>

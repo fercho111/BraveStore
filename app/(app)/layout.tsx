@@ -17,7 +17,7 @@ export default async function AppLayout({
   const { data: empleado } = await supabase
     .from('empleados')
     .select('rol')
-    .eq('id', user.id) // id maps to auth.users.id
+    .eq('id', user.id)
     .single();
 
   const rol = empleado?.rol ?? null;

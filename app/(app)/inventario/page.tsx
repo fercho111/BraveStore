@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { MovimientoRow } from '@/lib/utils/types';
+import { formatDateTime, formatMoney } from '@/lib/utils/helpers';
 
 export default async function InventarioPage() {
   const supabase = await createClient();
@@ -24,7 +25,6 @@ export default async function InventarioPage() {
       tipo,
       cantidad_cambio,
       costo_unitario_entrada,
-      nota,
       referencia_venta_id,
       productos:producto_id ( id, codigo, nombre_producto ),
       empleados:empleado_id ( id, nombre )
@@ -44,7 +44,7 @@ export default async function InventarioPage() {
     );
   }
 
-  const movimientos: MovimientoRow[] = (data ?? []) as any;
+  const movimientos: MovimientoRow[] = (data ?? []) as unknown as MovimientoRow[];
 
   return (
     <main>
@@ -77,7 +77,6 @@ export default async function InventarioPage() {
               <th>Costo entrada</th>
               <th>Empleado</th>
               <th>Ref. venta</th>
-              <th>Nota</th>
             </tr>
           </thead>
 
@@ -147,8 +146,6 @@ export default async function InventarioPage() {
                         '—'
                       )}
                     </td>
-
-                    <td>{m.nota ?? '—'}</td>
                   </tr>
                 );
               })
@@ -179,24 +176,6 @@ function cantidadStyle(qty: number): React.CSSProperties {
   if (qty > 0) return { color: '#25f54e', fontWeight: 600 };
   if (qty < 0) return { color: '#e81313', fontWeight: 600 };
   return { color: '#222' };
-}
-
-function formatMoney(value: string | number) {
-  const n = typeof value === 'string' ? Number(value) : value;
-  if (!Number.isFinite(n)) return String(value);
-  return n.toFixed(0);
-}
-
-function formatDateTime(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString('es-CO', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 }
 
 function shortId(id: string) {

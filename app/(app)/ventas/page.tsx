@@ -1,48 +1,15 @@
 // app/ventas/page.tsx
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { formatMoney, formatDateTime, formatCellValue } from '@/lib/utils/helpers';
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { formatMoney, formatDateTime } from "@/lib/utils/helpers";
+import type { VentaRow, ClienteRow } from "@/lib/utils/types";
 
-type VentaRow = {
+type EmpleadoRow = {
   id: string;
-  total: string | number | null;
-  pagado: string | number | null;
-  creado_en: string | null;
-  // Support future columns without changing the rendering approach:
-  [key: string]: unknown;
+  nombre: string | null;
+  documento: string | null;
 };
-
-// Centralized column config so adding columns later is just:
-// 1) add to SELECT string
-// 2) add to COLUMNS array (optional; you can also auto-render)
-type ColumnKey = 'total' | 'pagado' | 'creado_en';
-
-const COLUMNS: Array<{
-  key: ColumnKey;
-  label: string;
-  align?: 'left' | 'right';
-  render?: (row: VentaRow) => React.ReactNode;
-}> = [
-  {
-    key: 'creado_en',
-    label: 'Creado',
-    align: 'left',
-    render: (v) => formatDateTime(v.creado_en),
-  },
-  {
-    key: 'total',
-    label: 'Total',
-    align: 'left',
-    render: (v) => formatMoney(v.total),
-  },
-  {
-    key: 'pagado',
-    label: 'Pagado',
-    align: 'left',
-    render: (v) => formatMoney(v.pagado),
-  },
-];
 
 export default async function VentasPage() {
   const supabase = await createClient();
@@ -52,98 +19,206 @@ export default async function VentasPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
 
-  // Fetch ventas (include id for key + columns we show)
-  // Add more fields here later (e.g. cliente_id, metodo_pago, etc.)
-  const select = ['id', ...COLUMNS.map((c) => c.key)].join(', ');
+  // 1) Ventas (incluyendo cliente_id y empleado_id)
+  const { data: ventasData, error: ventasError } = await supabase
+    .from("ventas")
+    .select("id, creado_en, total, pagado, cliente_id, empleado_id")
+    .order("creado_en", { ascending: false });
 
-  const { data, error } = await supabase
-    .from('ventas')
-    .select(select)
-    .order('creado_en', { ascending: false });
-
-  if (error) {
+  if (ventasError) {
     return (
-      <main style={{ padding: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Ventas</h1>
-        <p style={{ marginTop: '1rem', color: 'crimson' }}>
-          Error cargando ventas: {error.message}
+      <main>
+        <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>Ventas</h1>
+        <p style={{ marginTop: "1rem", color: "crimson" }}>
+          Error cargando ventas: {ventasError.message}
         </p>
       </main>
     );
   }
 
-  const ventas: VentaRow[] = (data ?? []) as VentaRow[];
+  const ventas =
+    (ventasData ?? []) as (VentaRow & {
+      cliente_id: string | null;
+      empleado_id: string | null;
+    })[];
+
+  // Si no hay ventas, no vale la pena hacer más queries
+  if (ventas.length === 0) {
+    return (
+      <main>
+        <header
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <div>
+            <h1>Ventas</h1>
+            <p style={{ marginTop: "0.25rem", color: "#555" }}>Total: 0</p>
+          </div>
+
+          <Link href="/ventas/nueva" className="btn-primary">
+            Nueva venta
+          </Link>
+        </header>
+
+        <div style={{ marginTop: "1rem", overflowX: "auto" }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Creado</th>
+                <th>Cliente</th>
+                <th>Empleado</th>
+                <th>Total</th>
+                <th>Pagado</th>
+                <th>Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td
+                  colSpan={6}
+                  style={{ padding: "0.75rem", color: "#666" }}
+                >
+                  No hay ventas registradas.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    );
+  }
+
+  // 2) Reunimos ids únicos de clientes y empleados
+  const clienteIds = Array.from(
+    new Set(
+      ventas
+        .map((v) => v.cliente_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  const empleadoIds = Array.from(
+    new Set(
+      ventas
+        .map((v) => v.empleado_id)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+
+  // 3) Cargamos solo los clientes necesarios
+  const clientesById = new Map<string, ClienteRow>();
+  if (clienteIds.length > 0) {
+    const { data: clientesData } = await supabase
+      .from("clientes")
+      .select("id, nombre, documento, celular, creado_en")
+      .in("id", clienteIds);
+
+    (clientesData ?? []).forEach((c) => {
+      const cliente = c as ClienteRow;
+      clientesById.set(cliente.id, cliente);
+    });
+  }
+
+  // 4) Cargamos solo los empleados necesarios
+  const empleadosById = new Map<string, EmpleadoRow>();
+  if (empleadoIds.length > 0) {
+    const { data: empleadosData } = await supabase
+      .from("empleados")
+      .select("id, nombre, documento")
+      .in("id", empleadoIds);
+
+    (empleadosData ?? []).forEach((e) => {
+      const empleado = e as EmpleadoRow;
+      empleadosById.set(empleado.id, empleado);
+    });
+  }
 
   return (
     <main>
-      <header>
+      <header
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+        }}
+      >
         <div>
           <h1>Ventas</h1>
-          <p style={{ marginTop: '0.25rem', color: '#555' }}>
+          <p style={{ marginTop: "0.25rem", color: "#555" }}>
             Total: {ventas.length}
           </p>
         </div>
 
-        <Link href="/ventas/nueva" className='btn-primary'>
+        <Link href="/ventas/nueva" className="btn-primary">
           Nueva venta
         </Link>
       </header>
 
-      <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
+      <div style={{ marginTop: "1rem", overflowX: "auto" }}>
         <table>
           <thead>
             <tr>
-              {COLUMNS.map((c) => (
-                <th key={c.key}>
-                  {c.label}
-                </th>
-              ))}
-              {/* Optional actions column (safe to remove) */}
+              <th>Creado</th>
+              <th>Cliente</th>
+              <th>Empleado</th>
+              <th>Total</th>
+              <th>Pagado</th>
               <th>Detalle</th>
             </tr>
           </thead>
 
           <tbody>
-            {ventas.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={COLUMNS.length + 1}
-                  style={{ padding: '0.75rem', color: '#666' }}
-                >
-                  No hay ventas registradas.
-                </td>
-              </tr>
-            ) : (
-              ventas.map((v) => (
+            {ventas.map((v) => {
+              const cliente = v.cliente_id
+                ? clientesById.get(v.cliente_id)
+                : undefined;
+              const empleado = v.empleado_id
+                ? empleadosById.get(v.empleado_id)
+                : undefined;
+
+              const clienteTexto = cliente ? cliente.nombre : "—";
+
+              const empleadoTexto = empleado ? empleado.nombre ?? "Sin nombre" : "—";
+
+              return (
                 <tr key={v.id}>
-                  {COLUMNS.map((c) => {
-                    const content =
-                      c.render?.(v) ?? formatCellValue(v[c.key], c.key);
-
-                    const style =
-                      c.align === 'right' ? tdStyleRight : tdStyle;
-
-                    return (
-                      <td key={`${v.id}-${c.key}`} style={style}>
-                        {content}
-                      </td>
-                    );
-                  })}
-
+                  <td style={tdStyle}>
+                    {v.creado_en ? formatDateTime(v.creado_en) : "—"}
+                  </td>
+                  <td style={tdStyle}>
+                    {cliente ? (
+                      <Link
+                        href={`/clientes/${cliente.id}`}
+                        style={{ color: "#0a58ca", textDecoration: "none" }}
+                      >
+                        {clienteTexto}
+                      </Link>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td style={tdStyle}>{empleadoTexto}</td>
+                  <td style={tdStyle}>{formatMoney(v.total)}</td>
+                  <td style={tdStyle}>{formatMoney(v.pagado)}</td>
                   <td style={tdStyle}>
                     <Link
                       href={`/ventas/${v.id}`}
-                      style={{ color: '#0a58ca', textDecoration: 'none' }}
+                      style={{ color: "#0a58ca", textDecoration: "none" }}
                     >
                       Ver
                     </Link>
                   </td>
                 </tr>
-              ))
-            )}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -151,20 +226,8 @@ export default async function VentasPage() {
   );
 }
 
-
 const tdStyle: React.CSSProperties = {
-  padding: '0.75rem',
-  borderBottom: '1px solid #eee',
-  verticalAlign: 'top',
+  padding: "0.75rem",
+  borderBottom: "1px solid #eee",
+  verticalAlign: "top",
 };
-
-const tdStyleRight: React.CSSProperties = {
-  ...tdStyle,
-  textAlign: 'right',
-  fontVariantNumeric: 'tabular-nums',
-};
-
-
-
-
-

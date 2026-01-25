@@ -1,5 +1,6 @@
-import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function AppLayout({
   children,
@@ -7,28 +8,65 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect('/login');
-  }
+  if (!user) redirect('/login');
+
+  const { data: empleado } = await supabase
+    .from('empleados')
+    .select('rol')
+    .eq('id', user.id)
+    .single();
+
+  const rol = empleado?.rol ?? null;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', minHeight: '100vh' }}>
-      <aside style={{ padding: '1rem', borderRight: '1px solid #ddd' }}>
-        <h2>Brave Store</h2>
-        <nav style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
-          <a href="/productos">Productos</a>
-          <a href="/inventario">Inventario</a>
-          <a href="/ventas">Ventas</a>
-          <a href="/clientes">Clientes</a>
-          <a href="/deudas">Deudas</a>
-        </nav>
-      </aside>
-      <main style={{ padding: '1rem' }}>{children}</main>
+    <div className="min-vh-100 text-light bg-dark" data-bs-theme="dark">
+      <div className="container-fluid min-vh-100">
+        <div className="row min-vh-100">
+          {/* Sidebar / Top nav (responsive) */}
+          <aside className="col-12 col-md-3 col-lg-2 border-end border-secondary p-3">
+            <h2 className="h5 mb-3">
+              <Link href="/" className="text-decoration-none text-light">
+                Brave Store
+              </Link>
+            </h2>
+
+            {/* On mobile: full-width top section; on md+ it becomes a sidebar */}
+            <nav className="nav nav-pills flex-row flex-md-column gap-2">
+              <Link href="/productos" className="nav-link px-0 text-light">
+                Productos
+              </Link>
+              <Link href="/inventario" className="nav-link px-0 text-light">
+                Inventario
+              </Link>
+              <Link href="/ventas" className="nav-link px-0 text-light">
+                Ventas
+              </Link>
+              <Link href="/clientes" className="nav-link px-0 text-light">
+                Clientes
+              </Link>
+              <Link href="/deudas" className="nav-link px-0 text-light">
+                Deudas
+              </Link>
+              <Link href="/caja" className="nav-link px-0 text-light">
+                Caja
+              </Link>
+              {rol === 'admin' && (
+                <Link href="/admin" className="nav-link px-0 text-light">
+                  Administración
+                </Link>
+              )}
+            </nav>
+          </aside>
+
+          <main className="col-12 col-md-9 col-lg-10 p-4 bg-dark">
+            {children}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

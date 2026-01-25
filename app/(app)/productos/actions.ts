@@ -1,6 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
 function requireNonEmpty(formData: FormData, key: string): string {
@@ -103,4 +104,37 @@ export async function updateProducto(formData: FormData) {
 
   /* ---- Redirect back to list or detail ---- */
   redirect('/productos');
+}
+
+export async function toggleProductoActivo(formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) redirect('/login');
+
+  const productoId = String(formData.get('producto_id') ?? '').trim();
+  if (!productoId) throw new Error('Falta producto_id');
+
+  // We need current value to toggle safely
+  const { data: current, error: readError } = await supabase
+    .from('productos')
+    .select('activo')
+    .eq('id', productoId)
+    .single();
+
+  if (readError) throw new Error(`Error leyendo producto: ${readError.message}`);
+
+  const { error: updateError } = await supabase
+    .from('productos')
+    .update({ activo: !current.activo })
+    .eq('id', productoId);
+
+  if (updateError) throw new Error(`Error cambiando activo: ${updateError.message}`);
+
+  // Keep the list in sync with DB
+  revalidatePath('/productos');
 }

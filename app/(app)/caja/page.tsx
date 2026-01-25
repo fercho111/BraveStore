@@ -1,0 +1,289 @@
+// app/caja/page.tsx
+
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
+
+type CajaMovimientoRow = {
+  id: string;
+  tipo: 'CARGO' | 'PAGO';
+  monto: string | number;
+  medio: 'EFECTIVO' | 'TRANSFERENCIA' | 'OTRO' | null;
+  creado_en: string;
+  clientes: {
+    id: string;
+    nombre: string;
+  } | null;
+  ventas: {
+    id: string;
+    total: string | number;
+    pagado: string | number;
+    creado_en: string;
+  } | null;
+  empleado: {
+    id: string;
+    nombre: string | null;
+    rol: 'admin' | 'cajero';
+  } | null;
+};
+
+export default async function CajaPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  // Movimientos de caja (últimos 200)
+  const { data, error } = await supabase
+    .from('caja')
+    .select(
+      `
+      id,
+      tipo,
+      monto,
+      medio,
+      creado_en,
+      clientes:cliente_id (
+        id,
+        nombre
+      ),
+      ventas:venta_id (
+        id,
+        total,
+        pagado,
+        creado_en
+      ),
+      empleado:empleado_id (
+        id,
+        nombre,
+        rol
+      )
+    `,
+    )
+    .order('creado_en', { ascending: false })
+    .limit(200);
+
+  if (error) {
+    return (
+      <>
+        <div className="container py-4">
+          <h1 className="h4 fw-semibold">Movimientos de caja</h1>
+          <div className="alert alert-danger mt-3">
+            Error cargando movimientos de caja: {error.message}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const movimientos = (data ?? []) as unknown as CajaMovimientoRow[];
+
+  const totalCargos = movimientos
+    .filter((m) => m.tipo === 'CARGO')
+    .reduce((sum, m) => sum + Number(m.monto ?? 0), 0);
+
+  const totalPagos = movimientos
+    .filter((m) => m.tipo === 'PAGO')
+    .reduce((sum, m) => sum + Number(m.monto ?? 0), 0);
+
+  const saldo = totalCargos - totalPagos;
+
+  const saldoClass =
+    saldo > 0
+      ? 'badge bg-warning-subtle text-warning-emphasis'
+      : saldo < 0
+      ? 'badge bg-success-subtle text-success-emphasis'
+      : 'badge bg-secondary-subtle text-secondary-emphasis';
+
+  return (
+    <>
+      {/* Header */}
+      <header className="d-flex align-items-baseline justify-content-between gap-3 mb-3 flex-wrap">
+        <div>
+          <h1 className="h4 fw-semibold mb-1">Caja</h1>
+          <p className="text-muted mb-0">
+            Últimos {movimientos.length} movimientos
+          </p>
+        </div>
+
+        <Link href="/ventas" className="text-decoration-none">
+          Ir a ventas →
+        </Link>
+      </header>
+
+      {/* Resumen de saldos */}
+      <section className="row g-3 mb-4">
+        <div className="col-12 col-md-6 col-lg-4">
+          <div className="card h-100">
+            <div className="card-body">
+              <h2 className="h6 fw-semibold mb-2">Resumen</h2>
+              <div className="small">
+                <div className="mb-1">
+                  <span className="text-muted">Total cargos: </span>
+                  <span className="fw-semibold">
+                    {formatMoney(totalCargos)}
+                  </span>
+                </div>
+                <div className="mb-1">
+                  <span className="text-muted">Total pagos: </span>
+                  <span className="fw-semibold">
+                    {formatMoney(totalPagos)}
+                  </span>
+                </div>
+                <div className="mt-1">
+                  <span className="text-muted">Saldo (cargos - pagos): </span>
+                  <span className={saldoClass}>{formatMoney(saldo)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tabla de movimientos */}
+      <section>
+        <h2 className="h6 fw-semibold mb-3">Movimientos</h2>
+
+        <div className="table-responsive">
+          <table className="table table-dark table-hover align-middle">
+            <thead className="table-header-purple text-white">
+              <tr>
+                <th scope="col">Fecha</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Venta</th>
+                <th scope="col">Medio</th>
+                <th scope="col" className="text-end">
+                  Monto
+                </th>
+                <th scope="col">Empleado</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {movimientos.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-3 text-muted">
+                    No hay movimientos registrados.
+                  </td>
+                </tr>
+              ) : (
+                movimientos.map((m) => {
+                  const empleadoNombre =
+                    m.empleado?.nombre && m.empleado.nombre.trim() !== ''
+                      ? m.empleado.nombre
+                      : m.empleado
+                      ? shortId(m.empleado.id)
+                      : '—';
+
+                  return (
+                    <tr key={m.id}>
+                      {/* Fecha */}
+                      <td className="text-nowrap">
+                        {formatDateTime(m.creado_en)}
+                      </td>
+
+                      {/* Tipo */}
+                      <td>
+                        <span className={tipoBadgeClass(m.tipo)}>
+                          {m.tipo === 'CARGO' ? 'Cargo' : 'Pago'}
+                        </span>
+                      </td>
+
+                      {/* Cliente */}
+                      <td>
+                        {m.clientes ? (
+                          <Link
+                            href={`/clientes/${m.clientes.id}`}
+                            className="text-reset text-decoration-none"
+                          >
+                            {m.clientes.nombre}
+                          </Link>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+
+                      {/* Venta */}
+                      <td>
+                        {m.ventas ? (
+                          <>
+                            <Link
+                              href={`/ventas/${m.ventas.id}`}
+                              className="text-primary text-decoration-none"
+                            >
+                              Venta #{shortId(m.ventas.id)}
+                            </Link>
+                            <div className="small text-muted">
+                              Total: {formatMoney(m.ventas.total)} · Pagado:{' '}
+                              {formatMoney(m.ventas.pagado)}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+
+                      {/* Medio */}
+                      <td className="text-nowrap">
+                        {m.tipo === 'PAGO' && m.medio
+                          ? formatMedio(m.medio)
+                          : m.tipo === 'CARGO'
+                          ? '—'
+                          : '—'}
+                      </td>
+
+                      {/* Monto */}
+                      <td className="text-end text-nowrap">
+                        {formatMoney(m.monto)}
+                      </td>
+
+                      {/* Empleado */}
+                      <td>
+                        {m.empleado ? (
+                          <>
+                            <div>{empleadoNombre}</div>
+                            <div className="small text-muted">
+                              Rol: {m.empleado.rol}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-muted">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/* ---- Helpers ---- */
+
+function tipoBadgeClass(tipo: 'CARGO' | 'PAGO'): string {
+  if (tipo === 'CARGO') {
+    return 'badge rounded-pill border border-warning text-warning';
+  }
+  return 'badge rounded-pill border border-success text-success';
+}
+
+function shortId(id: string): string {
+  return id.length > 8 ? `${id.slice(0, 8)}…` : id;
+}
+
+function formatMedio(medio: 'EFECTIVO' | 'TRANSFERENCIA' | 'OTRO'): string {
+  if (medio === 'EFECTIVO') return 'Efectivo';
+  if (medio === 'TRANSFERENCIA') return 'Transferencia';
+  return 'Otro';
+}

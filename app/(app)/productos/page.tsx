@@ -1,160 +1,148 @@
-import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-
-type ProductoRow = {
-  id: string;
-  codigo: string;
-  nombre_producto: string;
-  costo: string | number;
-  precio: string | number;
-  activo: boolean;
-  creado_en: string;
-};
+import { createClient } from '@/lib/supabase/server';
+import { ProductoRow } from '@/lib/utils/types';
+import { formatMoney } from '@/lib/utils/helpers';
+import { toggleProductoActivo } from './actions';
 
 export default async function ProductosPage() {
   const supabase = await createClient();
 
-  // Fetch products (display all except id + creado_en)
   const { data, error } = await supabase
     .from('productos')
     .select('id, codigo, nombre_producto, costo, precio, activo, creado_en')
     .order('nombre_producto', { ascending: true });
 
   if (error) {
-    // For now: render an error page section (no fancy error boundary yet)
     return (
-      <main style={{ padding: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Productos</h1>
-        <p style={{ marginTop: '1rem', color: 'crimson' }}>
+      <main className="container py-4">
+        <h1 className="h4 fw-semibold">Productos</h1>
+        <p className="mt-3 text-danger">
           Error cargando productos: {error.message}
         </p>
       </main>
     );
   }
 
+  const { data: stockData } = await supabase
+  .from('v_stock_actual')
+  .select('producto_id, stock');
+
   const productos: ProductoRow[] = data ?? [];
 
+  type StockRow = { producto_id: string; stock: number | null };
+
+  const stockByProductoId = new Map<string, number>(
+    ((stockData ?? []) as StockRow[]).map((row) => [
+      row.producto_id,
+      row.stock ?? 0,
+    ]),
+  );
+
   return (
-    <main style={{ padding: '1.5rem' }}>
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          justifyContent: 'space-between',
-          gap: '1rem',
-        }}
-      >
+    <>
+      <header className="d-flex align-items-baseline justify-content-between gap-3 mb-3">
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Productos</h1>
-          <p style={{ marginTop: '0.25rem', color: '#555' }}>
-            Total: {productos.length}
-          </p>
+          <h1 className="h4 fw-semibold mb-1">Productos</h1>
+          <p className="text-muted mb-0">Total: {productos.length}</p>
         </div>
-        {/* Later: link to /productos/nuevo */}
-        {/* <Link href="/productos/nuevo">Nuevo producto</Link> */}
+        <Link href="/productos/nuevo" className="btn btn-primary btn-sm">Nuevo producto</Link>
       </header>
 
-      <div style={{ marginTop: '1rem', overflowX: 'auto' }}>
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            minWidth: '720px',
-          }}
-        >
-          <thead>
+      <div className="table-responsive">
+        <table className="table table-dark table-hover align-middle">
+          <thead className="table-header-purple text-white">
             <tr>
-              <th style={thStyle}>Código</th>
-              <th style={thStyle}>Producto</th>
-              <th style={thStyle}>Costo</th>
-              <th style={thStyle}>Precio</th>
-              <th style={thStyle}>Activo</th>
+              <th scope="col">Código</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Costo</th>
+              <th scope="col">Precio</th>
+              <th scope="col">Stock</th>
+              <th scope="col">Activo</th>
             </tr>
           </thead>
 
           <tbody>
             {productos.length === 0 ? (
-                <tr>
-                <td colSpan={5} style={{ padding: '0.75rem', color: '#666' }}>
-                    No hay productos registrados.
+              <tr>
+                <td colSpan={6} className="py-3 text-muted">
+                  No hay productos registrados.
                 </td>
-                </tr>
+              </tr>
             ) : (
-                productos.map((p) => (
-                <tr key={p.id}>
-                    <td style={tdStyle}>
-                    <Link
-                        href={`/productos/${p.id}`}
-                        style={{ color: '#0a58ca', textDecoration: 'none' }}
+            productos.map((p) => (
+              <tr key={p.id} className="align-middle table-row-clickable">
+                <td>
+                  <Link
+                    href={`/productos/${p.id}`}
+                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
+                  >
+                    {p.codigo}
+                  </Link>
+                </td>
+
+                <td>
+                  <Link
+                    href={`/productos/${p.id}`}
+                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
+                  >
+                    {p.nombre_producto}
+                  </Link>
+                </td>
+
+                <td>
+                  <Link
+                    href={`/productos/${p.id}`}
+                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
+                  >
+                    {formatMoney(p.costo)}
+                  </Link>
+                </td>
+
+                <td>
+                  <Link
+                    href={`/productos/${p.id}`}
+                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
+                  >
+                    {formatMoney(p.precio)}
+                  </Link>
+                </td>
+
+                <td>
+                  <Link
+                    href={`/productos/${p.id}`}
+                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
+                  >
+                    {stockByProductoId.get(p.id) ?? 0}
+                  </Link>
+                </td>
+
+                <td>
+                  {/* No Link here – this is the action cell */}
+                  <form action={toggleProductoActivo} className="d-inline">
+                    <input type="hidden" name="producto_id" value={p.id} />
+
+                    <button
+                      type="submit"
+                      className={`btn border ${
+                        p.activo
+                          ? 'bg-success-subtle border-success-subtle text-success'
+                          : 'bg-danger-subtle border-danger-subtle text-danger'
+                      }`}
+                      style={{ cursor: 'pointer' }}
+                      aria-label={`Marcar producto como ${p.activo ? 'inactivo' : 'activo'}`}
+                      title="Cambiar estado"
                     >
-                        {p.codigo}
-                    </Link>
-                    </td>
+                      {p.activo ? 'Sí' : 'No'}
+                    </button>
+                  </form>
+                </td>
+              </tr>
 
-                    <td style={tdStyle}>
-                    <Link
-                        href={`/productos/${p.id}`}
-                        style={{ color: '#0a58ca', textDecoration: 'none' }}
-                    >
-                        {p.nombre_producto}
-                    </Link>
-                    </td>
-
-                    <td style={tdStyleRight}>{formatMoney(p.costo)}</td>
-
-                    <td style={tdStyleRight}>{formatMoney(p.precio)}</td>
-
-                    <td style={tdStyle}>
-                    <span
-                        style={{
-                        display: 'inline-block',
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: 999,
-                        fontSize: '0.85rem',
-                        border: '1px solid #ddd',
-                        background: p.activo ? '#f5fff7' : '#fff5f5',
-                        }}
-                    >
-                        {p.activo ? 'Sí' : 'No'}
-                    </span>
-                    </td>
-                </tr>
-                ))
+              ))
             )}
-            </tbody>
-
-
+          </tbody>
         </table>
       </div>
-    </main>
+    </>
   );
-}
-
-const thStyle: React.CSSProperties = {
-  textAlign: 'left',
-  fontWeight: 600,
-  padding: '0.75rem',
-  borderBottom: '1px solid #ddd',
-  background: '#fafafa',
-  whiteSpace: 'nowrap',
-};
-
-const tdStyle: React.CSSProperties = {
-  padding: '0.75rem',
-  borderBottom: '1px solid #eee',
-  verticalAlign: 'top',
-};
-
-const tdStyleRight: React.CSSProperties = {
-  ...tdStyle,
-  textAlign: 'right',
-  fontVariantNumeric: 'tabular-nums',
-};
-
-function formatMoney(value: string | number) {
-  const n = typeof value === 'string' ? Number(value) : value;
-  if (!Number.isFinite(n)) return String(value);
-
-  // Keep it simple; later you can localize (es-CO) if desired
-  return n.toFixed(2);
 }

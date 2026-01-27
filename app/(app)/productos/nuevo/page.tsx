@@ -1,116 +1,106 @@
+// app/productos/nuevo/page.tsx
+
 import Link from 'next/link';
 import { createProducto } from '../actions';
 
 export default function NuevoProductoPage() {
   return (
-    <main style={{ padding: '1.5rem', maxWidth: 720 }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+    <>
+      <header className="d-flex justify-content-between align-items-baseline gap-3 mb-3 flex-wrap">
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Nuevo producto</h1>
-          <p style={{ marginTop: '0.25rem', color: '#555' }}>
+          <h1 className="h4 fw-semibold mb-1">Nuevo producto</h1>
+          <p className="text-muted mb-0">
             Crear un producto en el inventario.
           </p>
         </div>
 
-        <Link href="/productos" style={{ alignSelf: 'center' }}>
+        <Link href="/productos" className="btn btn-outline-light btn-sm">
           Volver
         </Link>
       </header>
 
-      <form action={createProducto} style={{ marginTop: '1.25rem' }}>
-        <div style={gridStyle}>
-          <label style={labelStyle}>
-            Código (SKU)
-            <input name="codigo" required placeholder="PR-001" style={inputStyle} />
-          </label>
-
-          <label style={labelStyle}>
-            Producto
+      <form action={createProducto} className="mt-3" style={{ maxWidth: 720 }}>
+        <div className="row g-3">
+          <div className="col-12 col-md-6">
+            <label htmlFor="codigo" className="form-label">
+              Código (SKU)
+            </label>
             <input
+              id="codigo"
+              name="codigo"
+              required
+              placeholder="PR-001"
+              className="form-control"
+            />
+          </div>
+
+          <div className="col-12 col-md-6">
+            <label htmlFor="nombre_producto" className="form-label">
+              Producto
+            </label>
+            <input
+              id="nombre_producto"
               name="nombre_producto"
               required
               placeholder="Proteína 2lb"
-              style={inputStyle}
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label style={labelStyle}>
-            Precio (venta)
+          <div className="col-12 col-md-6">
+            <label htmlFor="precio" className="form-label">
+              Precio (venta)
+            </label>
             <input
+              id="precio"
               name="precio"
               required
               inputMode="decimal"
               placeholder="0.00"
-              style={inputStyle}
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label style={labelStyle}>
-            Costo (promedio inicial)
+          <div className="col-12 col-md-6">
+            <label htmlFor="costo" className="form-label">
+              Costo (promedio inicial)
+            </label>
             <input
+              id="costo"
               name="costo"
               required
               inputMode="decimal"
               placeholder="0.00"
-              style={inputStyle}
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label style={{ ...labelStyle, flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
-            <input name="activo" type="checkbox" defaultChecked />
-            Activo
-          </label>
+          <div className="col-12">
+            <div className="form-check">
+              <input
+                id="activo"
+                name="activo"
+                type="checkbox"
+                defaultChecked
+                className="form-check-input"
+              />
+              <label htmlFor="activo" className="form-check-label">
+                Activo
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
-          <button type="submit" style={buttonStyle}>
+        <div className="mt-3 d-flex gap-2">
+          <button type="submit" className="btn btn-primary btn-sm">
             Guardar
           </button>
 
-          <Link href="/productos" style={secondaryButtonStyle}>
+          <Link href="/productos" className="btn btn-outline-light btn-sm">
             Cancelar
           </Link>
         </div>
       </form>
-    </main>
+    </>
   );
 }
-
-const gridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '0.75rem',
-  marginTop: '1rem',
-};
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.35rem',
-  fontWeight: 600,
-};
-
-const inputStyle: React.CSSProperties = {
-  padding: '0.6rem 0.7rem',
-  border: '1px solid #ddd',
-  borderRadius: 8,
-  fontWeight: 400,
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: '0.6rem 0.9rem',
-  borderRadius: 8,
-  border: '1px solid #222',
-  background: '#222',
-  color: '#fff',
-  cursor: 'pointer',
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  display: 'inline-block',
-  padding: '0.6rem 0.9rem',
-  borderRadius: 8,
-  border: '1px solid #ddd',
-  color: '#222',
-  textDecoration: 'none',
-};

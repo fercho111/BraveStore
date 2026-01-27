@@ -58,6 +58,7 @@ export default async function ProductosPage() {
               <th scope="col">Precio</th>
               <th scope="col">Stock</th>
               <th scope="col">Activo</th>
+              <th scope="col" style={{ width: 90 }}></th>
             </tr>
           </thead>
 
@@ -135,6 +136,15 @@ export default async function ProductosPage() {
                       {p.activo ? 'Sí' : 'No'}
                     </button>
                   </form>
+                </td>
+                <td className="text-center">
+                  <Link
+                    href={`/productos/${p.id}/editar`}
+                    className="btn btn-outline-secondary"
+                    style={{ whiteSpace: 'nowrap' }}
+                  >
+                    Editar
+                  </Link>
                 </td>
               </tr>
 

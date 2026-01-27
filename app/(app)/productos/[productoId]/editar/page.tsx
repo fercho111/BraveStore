@@ -1,4 +1,3 @@
-// app/(app)/productos/[productoId]/editar/page.tsx
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { updateProducto } from '../../actions';
@@ -9,12 +8,9 @@ type PageProps = {
 
 export default async function EditarProductoPage({ params }: PageProps) {
   const supabase = await createClient();
+  const { productoId } = await params;
 
-  const data = await params;
-
-  const productoId = data.productoId;
-
-  // Fetch product
+  // Fetch product explicitly
   const { data: producto, error } = await supabase
     .from('productos')
     .select('id, codigo, nombre_producto, costo, precio, activo')
@@ -23,147 +19,107 @@ export default async function EditarProductoPage({ params }: PageProps) {
 
   if (error || !producto) {
     return (
-      <main style={{ padding: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Editar producto</h1>
-        <p style={{ marginTop: '1rem', color: 'crimson' }}>
+      <>
+        <h1 className="h4 fw-semibold mb-2">Editar producto</h1>
+        <div className="alert alert-danger" role="alert">
           No se pudo cargar el producto. {error?.message ?? ''}
-        </p>
-        <div style={{ marginTop: '1rem' }}>
-          <Link href="/productos">Volver a productos</Link>
         </div>
-      </main>
+
+        <Link href="/productos" className="btn btn-outline-light btn-sm">
+          Volver a productos
+        </Link>
+      </>
     );
   }
 
   return (
-    <main style={{ padding: '1.5rem', maxWidth: 720 }}>
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          gap: '1rem',
-        }}
-      >
+    <>
+      <header className="d-flex justify-content-between align-items-baseline flex-wrap gap-3 mb-3">
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>Editar producto</h1>
-          <p style={{ marginTop: '0.25rem', color: '#555' }}>
+          <h1 className="h4 fw-semibold mb-1">Editar producto</h1>
+          <p className="text-muted mb-0">
             {producto.nombre_producto} ({producto.codigo})
           </p>
         </div>
 
-        <Link href={`/productos/${productoId}`}>Volver</Link>
+        <Link href={`/productos/${productoId}`} className="btn btn-outline-light btn-sm">
+          Volver
+        </Link>
       </header>
 
-      <form action={updateProducto} style={{ marginTop: '1.25rem' }}>
-        {/* Important: pass the id explicitly to the server action */}
+      <form action={updateProducto} style={{ maxWidth: 720 }}>
+        {/* Pass product ID to server action explicitly */}
         <input type="hidden" name="producto_id" value={producto.id} />
 
-        <div style={gridStyle}>
-          <label style={labelStyle}>
-            Código (SKU)
+        <div className="row g-3">
+          <div className="col-12 col-md-6">
+            <label className="form-label">Código (SKU)</label>
             <input
               name="codigo"
-              required
               defaultValue={producto.codigo ?? ''}
-              style={inputStyle}
+              required
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label style={labelStyle}>
-            Producto
+          <div className="col-12 col-md-6">
+            <label className="form-label">Producto</label>
             <input
               name="nombre_producto"
-              required
               defaultValue={producto.nombre_producto ?? ''}
-              style={inputStyle}
+              required
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label style={labelStyle}>
-            Precio (venta)
+          <div className="col-12 col-md-6">
+            <label className="form-label">Precio (venta)</label>
             <input
               name="precio"
+              defaultValue={String(producto.precio ?? '')}
               required
               inputMode="decimal"
-              defaultValue={String(producto.precio ?? '')}
-              style={inputStyle}
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label style={labelStyle}>
-            Costo (promedio)
+          <div className="col-12 col-md-6">
+            <label className="form-label">Costo (promedio)</label>
             <input
               name="costo"
+              defaultValue={String(producto.costo ?? '')}
               required
               inputMode="decimal"
-              defaultValue={String(producto.costo ?? '')}
-              style={inputStyle}
+              className="form-control"
             />
-          </label>
+          </div>
 
-          <label
-            style={{
-              ...labelStyle,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: '0.5rem',
-            }}
-          >
-            <input name="activo" type="checkbox" defaultChecked={!!producto.activo} />
-            Activo
-          </label>
+          <div className="col-12">
+            <div className="form-check">
+              <input
+                name="activo"
+                type="checkbox"
+                defaultChecked={!!producto.activo}
+                className="form-check-input"
+                id="activoCheck"
+              />
+              <label htmlFor="activoCheck" className="form-check-label">
+                Activo
+              </label>
+            </div>
+          </div>
         </div>
 
-        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
-          <button type="submit" style={buttonStyle}>
+        <div className="mt-3 d-flex gap-2">
+          <button type="submit" className="btn btn-primary btn-sm">
             Guardar cambios
           </button>
 
-          <Link href={`/productos/${productoId}`} style={secondaryButtonStyle}>
+          <Link href={`/productos/${productoId}`} className="btn btn-outline-light btn-sm">
             Cancelar
           </Link>
         </div>
       </form>
-    </main>
+    </>
   );
 }
-
-const gridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '0.75rem',
-  marginTop: '1rem',
-};
-
-const labelStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.35rem',
-  fontWeight: 600,
-};
-
-const inputStyle: React.CSSProperties = {
-  padding: '0.6rem 0.7rem',
-  border: '1px solid #ddd',
-  borderRadius: 8,
-  fontWeight: 400,
-};
-
-const buttonStyle: React.CSSProperties = {
-  padding: '0.6rem 0.9rem',
-  borderRadius: 8,
-  border: '1px solid #222',
-  background: '#222',
-  color: '#fff',
-  cursor: 'pointer',
-};
-
-const secondaryButtonStyle: React.CSSProperties = {
-  display: 'inline-block',
-  padding: '0.6rem 0.9rem',
-  borderRadius: 8,
-  border: '1px solid #ddd',
-  color: '#222',
-  textDecoration: 'none',
-};

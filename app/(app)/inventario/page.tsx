@@ -96,12 +96,10 @@ export default async function InventarioPage() {
 
                 return (
                   <tr key={m.id}>
-                    {/* Fecha */}
                     <td className="text-nowrap">
                       {formatDateTime(m.creado_en)}
                     </td>
 
-                    {/* Producto */}
                     <td>
                       {prod ? (
                         <Link
@@ -117,24 +115,20 @@ export default async function InventarioPage() {
                       )}
                     </td>
 
-                    {/* Tipo */}
                     <td>
                       <span className={tipoBadgeClass(m.tipo)}>{m.tipo}</span>
                     </td>
 
-                    {/* Cantidad */}
                     <td className="text-end text-nowrap">
                       <span className={cantidadClass(qty)}>{qtyLabel}</span>
                     </td>
 
-                    {/* Costo entrada */}
                     <td className="text-end text-nowrap">
                       {m.tipo === 'REPOSICION'
                         ? formatMoney(m.costo_unitario_entrada ?? '')
                         : '—'}
                     </td>
 
-                    {/* Empleado */}
                     <td>
                       {emp?.nombre?.trim()
                         ? emp.nombre
@@ -143,7 +137,6 @@ export default async function InventarioPage() {
                         : '—'}
                     </td>
 
-                    {/* Ref. venta */}
                     <td>
                       {m.referencia_venta_id ? (
                         <Link

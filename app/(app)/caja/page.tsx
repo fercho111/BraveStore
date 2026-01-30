@@ -28,7 +28,20 @@ type CajaMovimientoRow = {
   } | null;
 };
 
-export default async function CajaPage() {
+type CajaPageProps = {
+  searchParams?: { tipo?: string };
+};
+
+export default async function CajaPage({ searchParams }: CajaPageProps) {
+  // odio el sistema de await, arreglar urgente
+  const raw = await searchParams;
+  const filtroTipoRaw = raw?.tipo;
+
+  const filtroTipo: 'CARGO' | 'PAGO' | null =
+    filtroTipoRaw === 'CARGO' || filtroTipoRaw === 'PAGO'
+      ? filtroTipoRaw
+      : null;
+
   const supabase = await createClient();
 
   const {
@@ -39,8 +52,8 @@ export default async function CajaPage() {
     redirect('/login');
   }
 
-  // Movimientos de caja (últimos 200)
-  const { data, error } = await supabase
+  // Movimientos de caja (últimos 200), opcionalmente filtrados por tipo (CARGO / PAGO)
+  let query = supabase
     .from('caja')
     .select(
       `
@@ -66,8 +79,15 @@ export default async function CajaPage() {
       )
     `,
     )
-    .order('creado_en', { ascending: false })
-    .limit(200);
+    .order('creado_en', { ascending: false });
+
+  if (filtroTipo) {
+    // Filtrar por enum exacto en la BD
+    query = query.eq('tipo', filtroTipo);
+  }
+
+  const { data, error } = await query.limit(200);
+
 
   if (error) {
     return (
@@ -109,13 +129,51 @@ export default async function CajaPage() {
           <h1 className="h4 fw-semibold mb-1">Caja</h1>
           <p className="text-muted mb-0">
             Últimos {movimientos.length} movimientos
+            {filtroTipo ? ` (${filtroTipo === 'CARGO' ? 'solo cargos' : 'solo pagos'})` : ''}
           </p>
         </div>
 
-        <Link href="/ventas" className="text-decoration-none">
-          Ir a ventas →
-        </Link>
+        <div className="d-flex align-items-center gap-3 flex-wrap">
+          {/* Filtro por tipo */}
+          <div className="btn-group btn-group-sm" role="group" aria-label="Filtro tipo de movimiento">
+            <Link
+              href="/caja"
+              className={
+                !filtroTipo
+                  ? 'btn btn-primary'
+                  : 'btn btn-outline-light'
+              }
+            >
+              Todos
+            </Link>
+            <Link
+              href="/caja?tipo=CARGO"
+              className={
+                filtroTipo === 'CARGO'
+                  ? 'btn btn-primary'
+                  : 'btn btn-outline-light'
+              }
+            >
+              Cargos
+            </Link>
+            <Link
+              href="/caja?tipo=PAGO"
+              className={
+                filtroTipo === 'PAGO'
+                  ? 'btn btn-primary'
+                  : 'btn btn-outline-light'
+              }
+            >
+              Pagos
+            </Link>
+          </div>
+
+          <Link href="/ventas" className="text-decoration-none">
+            Ir a ventas →
+          </Link>
+        </div>
       </header>
+
 
       {/* Resumen de saldos */}
       <section className="row g-3 mb-4">

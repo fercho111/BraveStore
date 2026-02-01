@@ -45,7 +45,7 @@ export default async function ClientesPage() {
           <p className="text-muted mb-0">Total: {clientes.length}</p>
           </div>
 
-          <Link href="/clientes/nuevo" className="btn btn-primary btn-sm">
+          <Link href="/clientes/nuevo" className="btn btn-primary">
           Nuevo cliente
           </Link>
       </header>

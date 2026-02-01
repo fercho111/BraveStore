@@ -54,7 +54,7 @@ export default async function VentasPage() {
             <h1 className="h4 fw-semibold mb-1">Ventas</h1>
             <p className="text-muted mb-0">Total: 0</p>
           </div>
-          <Link href="/ventas/nueva" className="btn btn-primary btn-sm">
+          <Link href="/ventas/nueva" className="btn btn-primary">
             Nueva venta
           </Link>
         </header>
@@ -137,7 +137,7 @@ export default async function VentasPage() {
           <h1 className="h4 fw-semibold mb-1">Ventas</h1>
           <p className="text-muted mb-0">Total: {ventas.length}</p>
         </div>
-        <Link href="/ventas/nueva" className="btn btn-primary btn-sm">
+        <Link href="/ventas/nueva" className="btn btn-primary">
           Nueva venta
         </Link>
       </header>

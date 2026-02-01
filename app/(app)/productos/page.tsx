@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ProductoRow } from '@/lib/utils/types';
 import { formatMoney } from '@/lib/utils/helpers';
 import { toggleProductoActivo } from './actions';
+import { ClickableRow } from './ClickableRow';
 
 export default async function ProductosPage() {
   const supabase = await createClient();
@@ -45,7 +46,9 @@ export default async function ProductosPage() {
           <h1 className="h4 fw-semibold mb-1">Productos</h1>
           <p className="text-muted mb-0">Total: {productos.length}</p>
         </div>
-        <Link href="/productos/nuevo" className="btn btn-primary btn-sm">Nuevo producto</Link>
+        <Link href="/productos/nuevo" className="btn btn-primary">
+          Nuevo producto
+        </Link>
       </header>
 
       <div className="table-responsive">
@@ -65,90 +68,60 @@ export default async function ProductosPage() {
           <tbody>
             {productos.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-3 text-muted">
+                <td colSpan={7} className="py-3 text-muted">
                   No hay productos registrados.
                 </td>
               </tr>
             ) : (
-            productos.map((p) => (
-              <tr key={p.id} className="align-middle table-row-clickable">
-                <td>
-                  <Link
-                    href={`/productos/${p.id}`}
-                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
+              productos.map((p) => {
+                const rowHref = `/productos/${p.id}`;
+
+                return (
+                  <ClickableRow
+                    key={p.id}
+                    href={rowHref}
+                    className="align-middle table-row-clickable"
                   >
-                    {p.codigo}
-                  </Link>
-                </td>
+                    <td>{p.codigo}</td>
 
-                <td>
-                  <Link
-                    href={`/productos/${p.id}`}
-                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
-                  >
-                    {p.nombre_producto}
-                  </Link>
-                </td>
+                    <td>{p.nombre_producto}</td>
 
-                <td>
-                  <Link
-                    href={`/productos/${p.id}`}
-                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
-                  >
-                    {formatMoney(p.costo)}
-                  </Link>
-                </td>
+                    <td>{formatMoney(p.costo)}</td>
 
-                <td>
-                  <Link
-                    href={`/productos/${p.id}`}
-                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
-                  >
-                    {formatMoney(p.precio)}
-                  </Link>
-                </td>
+                    <td>{formatMoney(p.precio)}</td>
 
-                <td>
-                  <Link
-                    href={`/productos/${p.id}`}
-                    className="d-block w-100 h-100 py-2 text-reset text-decoration-none"
-                  >
-                    {stockByProductoId.get(p.id) ?? 0}
-                  </Link>
-                </td>
+                    <td>{stockByProductoId.get(p.id) ?? 0}</td>
 
-                <td>
-                  {/* No Link here – this is the action cell */}
-                  <form action={toggleProductoActivo} className="d-inline">
-                    <input type="hidden" name="producto_id" value={p.id} />
+                    <td>
+                      {/* Interactive element: the ClickableRow ignores clicks on buttons/forms */}
+                      <form action={toggleProductoActivo} className="d-inline">
+                        <input type="hidden" name="producto_id" value={p.id} />
+                        <button
+                          type="submit"
+                          className={`btn ${
+                            p.activo ? 'btn-outline-success' : 'btn-outline-danger'
+                          }`}
+                          aria-label={`Marcar producto como ${p.activo ? 'inactivo' : 'activo'}`}
+                          title="Cambiar estado"
+                        >
+                          {p.activo ? 'Sí' : 'No'}
+                        </button>
+                      </form>
+                    </td>
 
-                    <button
-                      type="submit"
-                      className={`btn border ${
-                        p.activo
-                          ? 'bg-success-subtle border-success-subtle text-success'
-                          : 'bg-danger-subtle border-danger-subtle text-danger'
-                      }`}
-                      style={{ cursor: 'pointer' }}
-                      aria-label={`Marcar producto como ${p.activo ? 'inactivo' : 'activo'}`}
-                      title="Cambiar estado"
-                    >
-                      {p.activo ? 'Sí' : 'No'}
-                    </button>
-                  </form>
-                </td>
-                <td className="text-center">
-                  <Link
-                    href={`/productos/${p.id}/editar`}
-                    className="btn btn-outline-secondary"
-                    style={{ whiteSpace: 'nowrap' }}
-                  >
-                    Editar
-                  </Link>
-                </td>
-              </tr>
-
-              ))
+                    <td className="text-center">
+                      {/* Interactive element: ignored by ClickableRow due to 'a' selector */}
+                      <Link
+                        href={`/productos/${p.id}/editar`}
+                        className="btn btn-outline-secondary"
+                        style={{ whiteSpace: 'nowrap' }}
+                      >
+                        Editar
+                      </Link>
+                    </td>
+                  </ClickableRow>
+                );
+              })
             )}
           </tbody>
         </table>

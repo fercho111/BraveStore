@@ -56,7 +56,7 @@ export default async function InventarioPage() {
           </p>
         </div>
 
-        <Link href="/inventario/nuevo" className="btn btn-primary btn-sm">
+        <Link href="/inventario/nuevo" className="btn btn-primary">
           Nuevo movimiento
         </Link>
       </header>

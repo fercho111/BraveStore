@@ -64,66 +64,63 @@ export default async function DeudasPage() {
 
       <div className="table-responsive">
           <table className="table table-dark table-hover align-middle">
-          <thead className="table-header-purple text-white">
+            <thead className="table-header-purple text-white">
+                <tr>
+                <th scope="col">Cliente</th>
+                <th scope="col">Documento</th>
+                <th scope="col">Celular</th>
+                <th scope="col" className="text-end">
+                    Saldo
+                </th>
+                </tr>
+            </thead>
+            <tbody>
+            {filas.length === 0 ? (
               <tr>
-              <th scope="col">Cliente</th>
-              <th scope="col">Documento</th>
-              <th scope="col">Celular</th>
-              <th scope="col" className="text-end">
-                  Saldo
-              </th>
-              <th scope="col" className="text-end">
-                  Detalle
-              </th>
+              <td colSpan={4} className="py-3 text-muted">
+                No hay clientes con deudas registradas.
+              </td>
               </tr>
-          </thead>
-
-          <tbody>
-              {filas.length === 0 ? (
-              <tr>
-                  <td colSpan={5} className="py-3 text-muted">
-                  No hay clientes con deudas registradas.
-                  </td>
-              </tr>
-              ) : (
+            ) : (
               filas.map((row) => {
-                  const saldoNumber = Number(row.saldo ?? 0);
+              const saldoNumber = Number(row.saldo ?? 0);
+              const rowHref = `/clientes/${row.cliente_id}`;
 
-                  return (
-                  <tr key={row.cliente_id}>
-                      <td>
-                      <div className="fw-semibold">
-                          {row.nombre ?? 'Sin nombre'}
-                      </div>
-                      </td>
-                      <td className="text-nowrap">
-                      {row.documento && row.documento.trim() !== ''
-                          ? row.documento
-                          : '—'}
-                      </td>
-                      <td className="text-nowrap">
-                      {row.celular && row.celular.trim() !== ''
-                          ? row.celular
-                          : '—'}
-                      </td>
-                      <td className="text-end text-nowrap">
-                      <span className="fw-semibold text-warning">
-                          {formatMoney(saldoNumber)}
-                      </span>
-                      </td>
-                      <td className="text-end">
-                      <Link
-                          href={`/clientes/${row.cliente_id}`}
-                          className="btn btn-outline-light btn-sm"
-                      >
-                          Ver cliente
-                      </Link>
-                      </td>
-                  </tr>
-                  );
+              return (
+                <tr key={row.cliente_id}>
+                <td>
+                  <Link href={rowHref} className="text-decoration-none text-reset">
+                  <div className="fw-semibold">
+                    {row.nombre ?? 'Sin nombre'}
+                  </div>
+                  </Link>
+                </td>
+                <td className="text-nowrap">
+                  <Link href={rowHref} className="text-decoration-none text-reset">
+                  {row.documento && row.documento.trim() !== ''
+                    ? row.documento
+                    : '—'}
+                  </Link>
+                </td>
+                <td className="text-nowrap">
+                  <Link href={rowHref} className="text-decoration-none text-reset">
+                  {row.celular && row.celular.trim() !== ''
+                    ? row.celular
+                    : '—'}
+                  </Link>
+                </td>
+                <td className="text-end text-nowrap">
+                  <Link href={rowHref} className="text-decoration-none text-reset">
+                  <span className="fw-semibold text-warning">
+                    {formatMoney(saldoNumber)}
+                  </span>
+                  </Link>
+                </td>
+                </tr>
+              );
               })
-              )}
-          </tbody>
+            )}
+            </tbody>
           </table>
       </div>
     </>

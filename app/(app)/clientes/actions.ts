@@ -17,7 +17,6 @@ type GrupoEdadCliente =
 export async function createCliente(formData: FormData) {
   const supabase = await createClient();
 
-  // 1) Require authenticated user (optional, but explicit)
   const {
     data: { user },
     error: authError,
@@ -29,11 +28,9 @@ export async function createCliente(formData: FormData) {
   }
 
   if (!user) {
-    // Si quieres redirigir al login directamente:
     redirect('/login');
   }
 
-  // 2) Leer y normalizar campos del formulario
 
   // Nombre (obligatorio)
   const nombreRaw = formData.get('nombre');

@@ -135,7 +135,7 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
 
         <div className="d-flex align-items-center gap-3 flex-wrap">
           {/* Filtro por tipo */}
-          <div className="btn-group btn-group-sm" role="group" aria-label="Filtro tipo de movimiento">
+          <div className="btn-group" role="group" aria-label="Filtro tipo de movimiento">
             <Link
               href="/caja"
               className={
@@ -168,8 +168,8 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
             </Link>
           </div>
 
-          <Link href="/ventas" className="text-decoration-none">
-            Ir a ventas →
+          <Link href="/caja/nuevo" className="btn btn-primary">
+            Nuevo Movimiento
           </Link>
         </div>
       </header>

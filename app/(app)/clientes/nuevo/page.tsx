@@ -75,10 +75,8 @@ export default function NuevoClientePage() {
               className="form-select"
               defaultValue=""
             >
-              <option value="">No especificar</option>
               <option value="MASCULINO">Masculino</option>
               <option value="FEMENINO">Femenino</option>
-              <option value="OTRO">Otro</option>
               <option value="NO_INFORMA">No informa</option>
             </select>
           </div>
@@ -96,10 +94,10 @@ export default function NuevoClientePage() {
             >
               <option value="">No especificar</option>
               <option value="MENOR_18">Menor de 18</option>
-              <option value="ED_18_25">18–25</option>
-              <option value="ED_26_35">26–35</option>
-              <option value="ED_36_45">36–45</option>
-              <option value="ED_46_60">46–60</option>
+              <option value="ED_18_25">18-25</option>
+              <option value="ED_26_35">26-35</option>
+              <option value="ED_36_45">36-45</option>
+              <option value="ED_46_60">46-60</option>
               <option value="MAYOR_60">Mayor de 60</option>
             </select>
           </div>

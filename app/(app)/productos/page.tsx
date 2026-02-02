@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { ProductoRow } from '@/lib/utils/types';
 import { formatMoney } from '@/lib/utils/helpers';
 import { toggleProductoActivo } from './actions';
-import { ClickableRow } from './ClickableRow';
+import { ClickableRow } from '@/lib/components/ClickableRow';
 
 export default async function ProductosPage() {
   const supabase = await createClient();

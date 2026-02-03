@@ -1,7 +1,6 @@
 // app/inventario/nuevo/page.tsx
 
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createMovimiento } from '../actions';
 
@@ -13,15 +12,6 @@ type ProductoOption = {
 
 export default async function NuevoInventarioPage() {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: sessionError,
-  } = await supabase.auth.getUser();
-
-  if (sessionError || !user) {
-    redirect('/login');
-  }
 
   // Productos activos para el dropdown
   const { data, error } = await supabase

@@ -1,5 +1,6 @@
 // app/ventas/page.tsx
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
 import type { VentaRow, ClienteRow } from '@/lib/utils/types';
@@ -12,6 +13,14 @@ type EmpleadoRow = {
 
 export default async function VentasPage() {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   // 1) Ventas (incluyendo cliente_id y empleado_id)
   const { data: ventasData, error: ventasError } = await supabase

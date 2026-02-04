@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ProductoRow, InventarioRow, KardexRow } from '@/lib/utils/types';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
@@ -11,6 +11,14 @@ type PageProps = {
 
 export default async function ProductoDetallePage({ params }: PageProps) {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   const { productoId } = await params;
 

@@ -1,6 +1,7 @@
 // app/ventas/[ventaId]/page.tsx
 
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import type { VentaRow, ClienteRow } from '@/lib/utils/types';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
@@ -33,6 +34,15 @@ type PageProps = {
 
 export default async function VentaDetallePage({ params }: PageProps) {
   const supabase = await createClient();
+
+  // Auth
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   const datas = await params;
 

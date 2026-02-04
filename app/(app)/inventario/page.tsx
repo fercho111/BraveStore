@@ -1,10 +1,19 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { MovimientoRow } from '@/lib/utils/types';
 import { formatDateTime, formatMoney } from '@/lib/utils/helpers';
 
 export default async function InventarioPage() {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   // Global kardex: latest movements first
   const { data, error } = await supabase

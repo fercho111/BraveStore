@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function AppLayout({
   children,
@@ -10,9 +11,14 @@ export default async function AppLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: empleado } = user
-    ? await supabase.from('empleados').select('rol').eq('id', user.id).single()
-    : { data: null };
+
+  if (!user) redirect('/login');
+
+  const { data: empleado } = await supabase
+    .from('empleados')
+    .select('rol')
+    .eq('id', user.id)
+    .single();
 
   const rol = empleado?.rol ?? null;
 

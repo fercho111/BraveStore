@@ -1,6 +1,7 @@
 // app/deudas/page.tsx
 
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatMoney } from '@/lib/utils/helpers';
 
@@ -14,6 +15,15 @@ type SaldoClienteRow = {
 
 export default async function DeudasPage() {
   const supabase = await createClient();
+
+  // Auth
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   // Query explícita sobre la vista v_saldo_clientes:
   // Solo clientes con saldo > 0 (deuda), ordenados por saldo descendente.

@@ -1,6 +1,7 @@
 // app/caja/nuevo/page.tsx
 
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { crearMovimientoCaja } from '../actions';
 
@@ -12,6 +13,13 @@ type ClienteOption = {
 
 export default async function CajaNuevoPage() {
   const supabase = await createClient();
+
+  // Auth guard
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect('/login');
 
   // Fetch clients for dropdown
   const { data, error } = await supabase

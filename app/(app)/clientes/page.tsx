@@ -1,11 +1,20 @@
 // app/clientes/page.tsx
 
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ClienteRow } from '@/lib/utils/types';
 
 export default async function ClientesPage() {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   // Query explícita de clientes
   const { data, error } = await supabase

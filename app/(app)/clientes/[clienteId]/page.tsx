@@ -1,7 +1,7 @@
 // app/clientes/[clienteId]/page.tsx
 
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { ClienteRow } from '@/lib/utils/types';
 import { formatDateTime, formatMoney } from '@/lib/utils/helpers';
@@ -28,6 +28,14 @@ type MovimientoCajaRow = {
 
 export default async function ClienteDetallePage({ params }: PageProps) {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   const { clienteId } = await params;
 

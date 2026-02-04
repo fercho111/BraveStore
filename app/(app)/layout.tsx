@@ -11,14 +11,12 @@ export default async function AppLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) redirect('/login');
-
-  const { data: empleado } = await supabase
-    .from('empleados')
-    .select('rol')
-    .eq('id', user.id)
-    .single();
+  if (!user) {
+    redirect('/login');
+  }
+  const { data: empleado } = user
+    ? await supabase.from('empleados').select('rol').eq('id', user.id).single()
+    : { data: null };
 
   const rol = empleado?.rol ?? null;
 

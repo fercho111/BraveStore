@@ -1,7 +1,6 @@
 // app/caja/page.tsx
 
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
 
@@ -43,14 +42,6 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
       : null;
 
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
 
   // Movimientos de caja (últimos 200), opcionalmente filtrados por tipo (CARGO / PAGO)
   let query = supabase

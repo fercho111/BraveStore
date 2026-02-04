@@ -245,7 +245,7 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
 
           <button
             type="submit"
-            className="btn btn-success btn-sm"
+            className="btn btn-success"
             disabled={!ventaConfirmable}
             aria-disabled={!ventaConfirmable}
             title={
@@ -333,7 +333,7 @@ export function NuevaVentaClient({ productos, clientes }: Props) {
               <h2 className="h6 fw-semibold mb-0">Productos</h2>
               <button
                 type="button"
-                className="btn btn-outline-light btn-sm"
+                className="btn btn-outline-light"
                 onClick={agregarLinea}
               >
                 + Agregar

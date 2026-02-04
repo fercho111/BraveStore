@@ -37,7 +37,7 @@ export default async function NuevoInventarioPage() {
         <div className="alert alert-danger">
           Error cargando productos: {error.message}
         </div>
-        <Link href="/inventario" className="btn btn-outline-light btn-sm mt-3">
+        <Link href="/inventario" className="btn btn-outline-light mt-3">
           Volver
         </Link>
       </>
@@ -56,7 +56,7 @@ export default async function NuevoInventarioPage() {
           </p>
         </div>
 
-        <Link href="/inventario" className="btn btn-outline-light btn-sm">
+        <Link href="/inventario" className="btn btn-outline-light">
           Volver
         </Link>
       </header>
@@ -137,11 +137,11 @@ export default async function NuevoInventarioPage() {
         </div>
 
         <div className="mt-3 d-flex gap-2">
-          <button type="submit" className="btn btn-primary btn-sm">
+          <button type="submit" className="btn btn-primary">
             Guardar
           </button>
 
-          <Link href="/inventario" className="btn btn-outline-light btn-sm">
+          <Link href="/inventario" className="btn btn-outline-light">
             Cancelar
           </Link>
         </div>

@@ -14,7 +14,7 @@ export default function NuevoClientePage() {
           </p>
         </div>
 
-        <Link href="/clientes" className="btn btn-outline-light btn-sm">
+        <Link href="/clientes" className="btn btn-outline-light">
           Volver
         </Link>
       </header>
@@ -104,11 +104,11 @@ export default function NuevoClientePage() {
         </div>
 
         <div className="mt-3 d-flex gap-2">
-          <button type="submit" className="btn btn-primary btn-sm">
+          <button type="submit" className="btn btn-primary">
             Guardar
           </button>
 
-          <Link href="/clientes" className="btn btn-outline-light btn-sm">
+          <Link href="/clientes" className="btn btn-outline-light">
             Cancelar
           </Link>
         </div>

@@ -25,7 +25,7 @@ export default async function EditarProductoPage({ params }: PageProps) {
           No se pudo cargar el producto. {error?.message ?? ''}
         </div>
 
-        <Link href="/productos" className="btn btn-outline-light btn-sm">
+        <Link href="/productos" className="btn btn-outline-light">
           Volver a productos
         </Link>
       </>
@@ -42,7 +42,7 @@ export default async function EditarProductoPage({ params }: PageProps) {
           </p>
         </div>
 
-        <Link href={`/productos/${productoId}`} className="btn btn-outline-light btn-sm">
+        <Link href={`/productos/${productoId}`} className="btn btn-outline-light">
           Volver
         </Link>
       </header>
@@ -111,11 +111,11 @@ export default async function EditarProductoPage({ params }: PageProps) {
         </div>
 
         <div className="mt-3 d-flex gap-2">
-          <button type="submit" className="btn btn-primary btn-sm">
+          <button type="submit" className="btn btn-primary">
             Guardar cambios
           </button>
 
-          <Link href={`/productos/${productoId}`} className="btn btn-outline-light btn-sm">
+          <Link href={`/productos/${productoId}`} className="btn btn-outline-light">
             Cancelar
           </Link>
         </div>

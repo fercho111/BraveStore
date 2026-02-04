@@ -111,10 +111,10 @@ export default async function ClienteDetallePage({ params }: PageProps) {
         </p>
         </div>
         <div className="d-flex gap-2 flex-wrap">
-        <Link href="/clientes" className="btn btn-outline-light btn-sm">
+        <Link href="/clientes" className="btn btn-outline-light">
             ← Volver a clientes
         </Link>
-        <Link href="/deudas" className="btn btn-outline-light btn-sm">
+        <Link href="/deudas" className="btn btn-outline-light">
             Ver deudas
         </Link>
         </div>

@@ -34,7 +34,7 @@ export default async function CajaNuevoPage() {
         <div className="alert alert-danger" role="alert">
           Error cargando clientes: {error.message}
         </div>
-        <Link href="/caja" className="btn btn-outline-light btn-sm">
+        <Link href="/caja" className="btn btn-outline-light">
           Volver a caja
         </Link>
       </>
@@ -53,7 +53,7 @@ export default async function CajaNuevoPage() {
           </p>
         </div>
 
-        <Link href="/caja" className="btn btn-outline-light btn-sm">
+        <Link href="/caja" className="btn btn-outline-light">
           Volver
         </Link>
       </header>
@@ -124,11 +124,11 @@ export default async function CajaNuevoPage() {
         </div>
 
         <div className="mt-3 d-flex gap-2">
-          <button type="submit" className="btn btn-primary btn-sm">
+          <button type="submit" className="btn btn-primary">
             Guardar
           </button>
 
-          <Link href="/caja" className="btn btn-outline-light btn-sm">
+          <Link href="/caja" className="btn btn-outline-light">
             Cancelar
           </Link>
         </div>

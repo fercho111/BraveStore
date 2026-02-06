@@ -40,16 +40,22 @@ export default async function DeudasPage() {
 
   return (
     <>
-      <header className="d-flex align-items-baseline justify-content-between gap-3 mb-3 flex-wrap">
+      <header className="d-flex align-items-baseline justify-content-between mb-3 flex-wrap">
         <div>
           <h1 className="h4 fw-semibold mb-1">Deudas</h1>
           <p className="text-muted mb-0">
-              Clientes con saldo pendiente: {filas.length}
+            Clientes con saldo pendiente: {filas.length}
           </p>
         </div>
-        <Link href="/clientes" className="text-decoration-none">
-        ← Ver clientes
-        </Link>
+
+        <div className="d-flex gap-2">
+          <Link href="/clientes" className="btn btn-outline-light">
+            Ver clientes
+          </Link>
+          <Link href="/caja/nuevo" className="btn btn-primary">
+            Registrar pago
+          </Link>
+        </div>
       </header>
 
       <div className="table-responsive">

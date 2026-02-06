@@ -53,11 +53,11 @@ export default async function ProductosPage() {
 
       <div className="table-responsive">
         <table className="table table-dark table-hover align-middle">
-          <thead className="table-header-purple text-white">
+          <thead style={{ whiteSpace: 'nowrap' }} className="table-header-purple text-white">
             <tr>
               <th scope="col">Código</th>
               <th scope="col">Producto</th>
-              <th scope="col">Costo</th>
+              <th scope="col">Costo Actual</th>
               <th scope="col">Precio</th>
               <th scope="col">Stock</th>
               <th scope="col">Activo</th>

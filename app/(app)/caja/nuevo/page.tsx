@@ -41,7 +41,7 @@ export default async function CajaNuevoPage() {
         <div>
           <h1 className="h4 fw-semibold mb-1">Nuevo movimiento de caja</h1>
           <p className="text-muted mb-0">
-            CARGO crea deuda. PAGO registra abono (requiere medio).
+            PAGO registra abono (requiere medio).
           </p>
         </div>
 
@@ -79,10 +79,9 @@ export default async function CajaNuevoPage() {
               aria-describedby="tipoHelp"
             >
               <option value="PAGO">PAGO</option>
-              <option value="CARGO">CARGO</option>
             </select>
             <div id="tipoHelp" className="form-text">
-              Si es PAGO, debe elegir un medio. Si es CARGO, el medio debe quedar vacío.
+              Si es PAGO, debe elegir un medio
             </div>
           </div>
 

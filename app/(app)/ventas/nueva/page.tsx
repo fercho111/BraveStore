@@ -7,13 +7,13 @@ export default async function NuevaVentaPage() {
 
   const { data: productos } = await supabase
     .from('productos')
-    .select('id, codigo, nombre_producto, precio, activo')
+    .select('id, codigo, nombre_producto, precio, activo, costo, creado_en')
     .eq('activo', true)
     .order('nombre_producto');
 
   const { data: clientes } = await supabase
     .from('clientes')
-    .select('id, nombre, documento, celular')
+    .select('id, nombre, documento, celular, creado_en')
     .order('nombre');
 
   return <NuevaVentaClient productos={productos ?? []} clientes={clientes ?? []} />;

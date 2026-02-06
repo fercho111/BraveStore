@@ -34,6 +34,32 @@ exception
   when duplicate_object then null;
 end $$;
 
+-- Gender
+do $$ begin
+  create type genero_cliente as enum (
+    'M',
+    'F',
+    'OTRO'
+  );
+exception
+  when duplicate_object then null;
+end $$;
+
+-- Age group (proxy)
+do $$ begin
+  create type grupo_edad_cliente as enum (
+    'MENOR_18',
+    'ED_18_25',
+    'ED_26_35',
+    'ED_36_45',
+    'ED_46_60',
+    'MAYOR_60'
+  );
+exception
+  when duplicate_object then null;
+end $$;
+
+
 -- =========================================================
 -- empleados
 -- Supabase Auth vive en auth.users; aquí guardamos rol y metadata.
@@ -48,13 +74,20 @@ create table if not exists public.empleados (
 -- =========================================================
 -- clientes
 -- =========================================================
+
+
 create table if not exists public.clientes (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
   documento text null unique,        -- cédula / ID / documento
   celular text null,
+
+  genero genero_cliente null,
+  grupo_edad grupo_edad_cliente null,
+
   creado_en timestamptz not null default now()
 );
+
 
 -- =========================================================
 -- productos
@@ -122,7 +155,11 @@ create table if not exists public.inventario (
   referencia_venta_id uuid null references public.ventas(id) on delete set null,
   creado_en timestamptz not null default now(),
 
-  -- Convenciones: venta debe ser negativa; reposición positiva.
+  -- Convenciones: una venta debe referenciar una id ,venta debe ser negativa; reposición positiva.
+  constraint inventario_venta_ref_consistency check (
+    (tipo = 'VENTA') = (referencia_venta_id is not null)
+  ),
+
   constraint inventario_venta_negativa check (
     (tipo <> 'VENTA') or (cantidad_cambio < 0)
   ),
@@ -145,10 +182,13 @@ create table if not exists public.caja (
   venta_id uuid null references public.ventas(id) on delete set null,
   empleado_id uuid not null references public.empleados(id) on delete restrict,
   medio medio_pago null,
-  creado_en timestamptz not null default now()
+  creado_en timestamptz not null default now(),
   constraint caja_medio_consistency check (
     (tipo = 'PAGO'  and medio is not null) or
     (tipo = 'CARGO' and medio is null)
+  ),
+  constraint caja_cargo_requiere_venta check (
+    tipo <> 'CARGO' or venta_id is not null
   )
 );
 
@@ -195,11 +235,6 @@ from public.clientes c
 left join public.caja x on x.cliente_id = c.id
 group by c.id, c.nombre, c.documento, c.celular;
 
-alter table public.caja
-  add constraint caja_medio_consistency check (
-    (tipo = 'PAGO'  and medio is not null) or
-    (tipo = 'CARGO' and medio is null)
-  );
 
 -- =========================================================
 -- RLS: habilitar

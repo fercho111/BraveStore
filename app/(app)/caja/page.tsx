@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
+import { ClickableRow } from '@/lib/components/ClickableRow';
 
 type CajaMovimientoRow = {
   id: string;
@@ -206,7 +207,6 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
                 <th scope="col">Fecha</th>
                 <th scope="col">Tipo</th>
                 <th scope="col">Cliente</th>
-                <th scope="col">Venta</th>
                 <th scope="col">Medio</th>
                 <th scope="col" className="text-end">
                   Monto
@@ -218,7 +218,7 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
             <tbody>
               {movimientos.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-3 text-muted">
+                  <td colSpan={6} className="py-3 text-muted">
                     No hay movimientos registrados.
                   </td>
                 </tr>
@@ -231,83 +231,63 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
                       ? shortId(m.empleado.id)
                       : '—';
 
-                  return (
-                    <tr key={m.id}>
+                    return (
+                    <ClickableRow key={m.id} href={`/caja/${m.id}`}>
                       {/* Fecha */}
                       <td className="text-nowrap">
-                        {formatDateTime(m.creado_en)}
+                      {formatDateTime(m.creado_en)}
                       </td>
 
                       {/* Tipo */}
                       <td>
-                        <span className={tipoBadgeClass(m.tipo)}>
-                          {m.tipo === 'CARGO' ? 'Cargo' : 'Pago'}
-                        </span>
+                      <span className={tipoBadgeClass(m.tipo)}>
+                        {m.tipo === 'CARGO' ? 'Cargo' : 'Pago'}
+                      </span>
                       </td>
 
                       {/* Cliente */}
                       <td>
-                        {m.clientes ? (
-                          <Link
-                            href={`/clientes/${m.clientes.id}`}
-                            className="text-reset text-decoration-none"
-                          >
-                            {m.clientes.nombre}
-                          </Link>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
-                      </td>
-
-                      {/* Venta */}
-                      <td>
-                        {m.ventas ? (
-                          <>
-                            <Link
-                              href={`/ventas/${m.ventas.id}`}
-                              className="text-primary text-decoration-none"
-                            >
-                              Venta #{shortId(m.ventas.id)}
-                            </Link>
-                            <div className="small text-muted">
-                              Total: {formatMoney(m.ventas.total)} · Pagado:{' '}
-                              {formatMoney(m.ventas.pagado)}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
+                      {m.clientes ? (
+                        <Link
+                        href={`/clientes/${m.clientes.id}`}
+                        className="text-reset text-decoration-none"
+                        >
+                        {m.clientes.nombre}
+                        </Link>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
                       </td>
 
                       {/* Medio */}
                       <td className="text-nowrap">
-                        {m.tipo === 'PAGO' && m.medio
-                          ? formatMedio(m.medio)
-                          : m.tipo === 'CARGO'
-                          ? '—'
-                          : '—'}
+                      {m.tipo === 'PAGO' && m.medio
+                        ? formatMedio(m.medio)
+                        : m.tipo === 'CARGO'
+                        ? '—'
+                        : '—'}
                       </td>
 
                       {/* Monto */}
                       <td className="text-end text-nowrap">
-                        {formatMoney(m.monto)}
+                      {formatMoney(m.monto)}
                       </td>
 
                       {/* Empleado */}
                       <td>
-                        {m.empleado ? (
-                          <>
-                            <div>{empleadoNombre}</div>
-                            <div className="small text-muted">
-                              Rol: {m.empleado.rol}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-muted">—</span>
-                        )}
+                      {m.empleado ? (
+                        <>
+                        <div>{empleadoNombre}</div>
+                        <div className="small text-muted">
+                          Rol: {m.empleado.rol}
+                        </div>
+                        </>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      )}
                       </td>
-                    </tr>
-                  );
+                    </ClickableRow>
+                    );
                 })
               )}
             </tbody>

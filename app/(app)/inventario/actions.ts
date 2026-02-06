@@ -2,32 +2,8 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { parseIntAllowSign, requireNonEmpty, parseMoney } from '@/lib/utils/helpers';
 
-function requireNonEmpty(formData: FormData, key: string): string {
-  const value = String(formData.get(key) ?? '').trim();
-  if (!value) throw new Error(`Campo requerido: ${key}`);
-  return value;
-}
-
-function parseIntAllowSign(formData: FormData, key: string): number {
-  const raw = String(formData.get(key) ?? '').trim();
-  const n = Number(raw);
-  if (!Number.isInteger(n)) {
-    throw new Error(`Cantidad inválida para ${key}`);
-  }
-  return n;
-}
-
-function parseMoney(formData: FormData, key: string): number | null {
-  const raw = String(formData.get(key) ?? '').trim();
-  if (!raw) return null; // allow empty
-  const normalized = raw.replace(',', '.');
-  const n = Number(normalized);
-  if (!Number.isFinite(n) || n < 0) {
-    throw new Error(`Valor inválido para ${key}`);
-  }
-  return n;
-}
 
 export async function createMovimiento(formData: FormData) {
   const supabase = await createClient();

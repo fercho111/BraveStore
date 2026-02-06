@@ -1,37 +1,20 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { updateSession } from '@/lib/supabase/proxy';
-
-const PUBLIC_PATHS = new Set(['/login', '/error']);
-const PUBLIC_FILE = /\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt)$/;
-
-function isPublicPath(pathname: string) {
-  if (PUBLIC_PATHS.has(pathname)) return true;
-  if (pathname.startsWith('/_next')) return true;
-  if (PUBLIC_FILE.test(pathname)) return true;
-  return false;
-}
+import { type NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/proxy'
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (isPublicPath(pathname)) {
-    return NextResponse.next();
-  }
-
-  const { response, user } = await updateSession(request);
-
-  if (!user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/login';
-    redirectUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  return response;
+  // update user's auth session
+  return await updateSession(request)
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}

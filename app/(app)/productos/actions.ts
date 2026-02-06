@@ -3,26 +3,8 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { parseBoolean, parseMoney, requireNonEmpty } from '@/lib/utils/helpers';
 
-function requireNonEmpty(formData: FormData, key: string): string {
-  const value = String(formData.get(key) ?? '').trim();
-  if (!value) throw new Error(`Campo requerido: ${key}`);
-  return value;
-}
-
-function parseMoney(formData: FormData, key: string): number {
-  const raw = String(formData.get(key) ?? '').trim().replace(',', '.');
-  const n = Number(raw);
-  if (!Number.isFinite(n) || n < 0) {
-    throw new Error(`Valor inválido para ${key}`);
-  }
-  return n;
-}
-
-function parseBoolean(formData: FormData, key: string): boolean {
-  // Checkbox: if checked -> "on", else null
-  return formData.get(key) === 'on';
-}
 
 export async function createProducto(formData: FormData) {
   const supabase = await createClient();

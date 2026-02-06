@@ -45,3 +45,32 @@ export function formatCellValue(value: unknown, key?: string) {
     return String(value);
   }
 }
+
+export function requireNonEmpty(formData: FormData, key: string): string {
+  const value = String(formData.get(key) ?? '').trim();
+  if (!value) throw new Error(`Campo requerido: ${key}`);
+  return value;
+}
+
+export function parseMoney(formData: FormData, key: string): number {
+  const raw = String(formData.get(key) ?? '').trim().replace(',', '.');
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) {
+    throw new Error(`Valor inválido para ${key}`);
+  }
+  return n;
+}
+
+export function parseBoolean(formData: FormData, key: string): boolean {
+  // Checkbox: if checked -> "on", else null
+  return formData.get(key) === 'on';
+}
+
+export function parseIntAllowSign(formData: FormData, key: string): number {
+  const raw = String(formData.get(key) ?? '').trim();
+  const n = Number(raw);
+  if (!Number.isInteger(n)) {
+    throw new Error(`Cantidad inválida para ${key}`);
+  }
+  return n;
+}

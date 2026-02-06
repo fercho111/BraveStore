@@ -53,7 +53,7 @@ export default async function VentaDetallePage({ params }: PageProps) {
             <h1 className="h4 fw-semibold mb-1">Venta</h1>
             <p className="text-muted mb-0">ID: {ventaId}</p>
           </div>
-          <Link href="/ventas" className="text-decoration-none">
+          <Link href="/ventas" className="btn btn-outline-light">
             ← Volver a ventas
           </Link>
         </header>
@@ -125,8 +125,8 @@ export default async function VentaDetallePage({ params }: PageProps) {
           <h1 className="h4 fw-semibold mb-1">Detalle de venta</h1>
           <p className="text-muted mb-0">ID: {venta.id}</p>
         </div>
-        <Link href="/ventas" className="text-decoration-none">
-          ← Volver a ventas
+        <Link href="/ventas" className="btn btn-outline-light">
+          Volver a ventas
         </Link>
       </header>
 

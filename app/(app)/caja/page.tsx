@@ -1,32 +1,10 @@
 // app/caja/page.tsx
 
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { cookies, headers } from 'next/headers';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
+import type { CajaMovimientoRow } from '@/lib/utils/types';
 import { ClickableRow } from '@/lib/components/ClickableRow';
-
-type CajaMovimientoRow = {
-  id: string;
-  tipo: 'CARGO' | 'PAGO';
-  monto: string | number;
-  medio: 'EFECTIVO' | 'TRANSFERENCIA' | 'OTRO' | null;
-  creado_en: string;
-  clientes: {
-    id: string;
-    nombre: string;
-  } | null;
-  ventas: {
-    id: string;
-    total: string | number;
-    pagado: string | number;
-    creado_en: string;
-  } | null;
-  empleado: {
-    id: string;
-    nombre: string | null;
-    rol: 'admin' | 'cajero';
-  } | null;
-};
 
 type CajaPageProps = {
   searchParams?: { tipo?: string; from?: string; to?: string };
@@ -74,79 +52,44 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
   const sinRango = !fromRaw && !toRaw;
 
 
-  // We accept ISO-like strings (e.g. "2026-02-06T14:00").
-  // Convert to full ISO with seconds if needed.
-  const fromIso = fromRaw ? new Date(fromRaw).toISOString() : null;
-  const toIso = toRaw ? new Date(toRaw).toISOString() : null;
+  const headerList = headers();
+  const host = headerList.get('x-forwarded-host') ?? headerList.get('host');
+  const protocol = headerList.get('x-forwarded-proto') ?? 'http';
+  const baseUrl = host ? `${protocol}://${host}` : '';
 
-  // Guard against invalid dates
-  const fromOk = fromIso && !Number.isNaN(Date.parse(fromIso));
-  const toOk = toIso && !Number.isNaN(Date.parse(toIso));
-
-
-  const supabase = await createClient();
-
-  // Movimientos de caja (últimos 200), opcionalmente filtrados por tipo (CARGO / PAGO)
-  let query = supabase
-    .from('caja')
-    .select(
-      `
-      id,
-      tipo,
-      monto,
-      medio,
-      creado_en,
-      clientes:cliente_id (
-        id,
-        nombre
-      ),
-      ventas:venta_id (
-        id,
-        total,
-        pagado,
-        creado_en
-      ),
-      empleado:empleado_id (
-        id,
-        nombre,
-        rol
-      )
-    `,
-    )
-    .order('creado_en', { ascending: false });
-
-  if (filtroTipo) {
-    // Filtrar por enum exacto en la BD
-    query = query.eq('tipo', filtroTipo);
+  const cookieHeader = cookies().toString();
+  const queryParams = new URLSearchParams();
+  if (filtroTipoRaw) {
+    queryParams.set('tipo', filtroTipoRaw);
+  }
+  if (fromRaw) {
+    queryParams.set('from', fromRaw);
+  }
+  if (toRaw) {
+    queryParams.set('to', toRaw);
   }
 
+  const apiUrl = `${baseUrl}/api/caja${queryParams.toString() ? `?${queryParams}` : ''}`;
+  const response = await fetch(apiUrl, {
+    cache: 'no-store',
+    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+  });
 
-  if (fromOk) {
-  query = query.gte('creado_en', fromIso!);
-  }
-
-  if (toOk) {
-    query = query.lt('creado_en', toIso!);
-  }
-
-
-  const { data, error } = await query.limit(200);
-
-
-  if (error) {
+  if (!response.ok) {
     return (
       <>
         <div className="container py-4">
           <h1 className="h4 fw-semibold">Movimientos de caja</h1>
           <div className="alert alert-danger mt-3">
-            Error cargando movimientos de caja: {error.message}
+            Error cargando movimientos de caja.
           </div>
         </div>
       </>
     );
   }
 
-  const movimientos = (data ?? []) as unknown as CajaMovimientoRow[];
+  const payload = (await response.json()) as { movimientos: CajaMovimientoRow[] };
+  const movimientos = payload.movimientos ?? [];
 
   const totalCargos = movimientos
     .filter((m) => m.tipo === 'CARGO')

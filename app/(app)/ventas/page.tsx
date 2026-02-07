@@ -1,6 +1,6 @@
 // app/ventas/page.tsx
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { cookies, headers } from 'next/headers';
 import { formatMoney, formatDateTime } from '@/lib/utils/helpers';
 import type { VentaRow, ClienteRow } from '@/lib/utils/types';
 
@@ -10,33 +10,37 @@ type EmpleadoRow = {
   documento: string | null;
 };
 
+type VentaApiRow = VentaRow & {
+  clientes: ClienteRow | null;
+  empleados: EmpleadoRow | null;
+};
+
 export default async function VentasPage() {
-  const supabase = await createClient();
+  const headerList = headers();
+  const host = headerList.get('x-forwarded-host') ?? headerList.get('host');
+  const protocol = headerList.get('x-forwarded-proto') ?? 'http';
+  const baseUrl = host ? `${protocol}://${host}` : '';
 
-  // 1) Ventas (incluyendo cliente_id y empleado_id)
-  const { data: ventasData, error: ventasError } = await supabase
-    .from('ventas')
-    .select('id, creado_en, total, pagado, cliente_id, empleado_id')
-    .order('creado_en', { ascending: false });
+  const cookieHeader = cookies().toString();
+  const response = await fetch(`${baseUrl}/api/ventas`, {
+    cache: 'no-store',
+    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+  });
 
-  if (ventasError) {
+  if (!response.ok) {
     return (
       <main className="container py-4">
         <h1 className="h4 fw-semibold">Ventas</h1>
         <p className="mt-3 text-danger">
-          Error cargando ventas: {ventasError.message}
+          Error cargando ventas.
         </p>
       </main>
     );
   }
 
-  const ventas =
-    (ventasData ?? []) as (VentaRow & {
-      cliente_id: string | null;
-      empleado_id: string | null;
-    })[];
+  const payload = (await response.json()) as { ventas: VentaApiRow[] };
+  const ventas = payload.ventas ?? [];
 
-  // Si no hay ventas, no hacemos más queries; mostramos tabla vacía con el mismo diseño
   if (ventas.length === 0) {
     return (
       <>
@@ -76,51 +80,6 @@ export default async function VentasPage() {
     );
   }
 
-  // 2) Reunimos ids únicos de clientes y empleados
-  const clienteIds = Array.from(
-    new Set(
-      ventas
-        .map((v) => v.cliente_id)
-        .filter((id): id is string => Boolean(id)),
-    ),
-  );
-
-  const empleadoIds = Array.from(
-    new Set(
-      ventas
-        .map((v) => v.empleado_id)
-        .filter((id): id is string => Boolean(id)),
-    ),
-  );
-
-  // 3) Cargamos solo los clientes necesarios
-  const clientesById = new Map<string, ClienteRow>();
-  if (clienteIds.length > 0) {
-    const { data: clientesData } = await supabase
-      .from('clientes')
-      .select('id, nombre, documento, celular, creado_en')
-      .in('id', clienteIds);
-
-    (clientesData ?? []).forEach((c) => {
-      const cliente = c as ClienteRow;
-      clientesById.set(cliente.id, cliente);
-    });
-  }
-
-  // 4) Cargamos solo los empleados necesarios
-  const empleadosById = new Map<string, EmpleadoRow>();
-  if (empleadoIds.length > 0) {
-    const { data: empleadosData } = await supabase
-      .from('empleados')
-      .select('id, nombre, documento')
-      .in('id', empleadoIds);
-
-    (empleadosData ?? []).forEach((e) => {
-      const empleado = e as EmpleadoRow;
-      empleadosById.set(empleado.id, empleado);
-    });
-  }
-
   return (
     <>
       <header className="d-flex align-items-baseline justify-content-between gap-3 mb-3">
@@ -148,12 +107,8 @@ export default async function VentasPage() {
 
           <tbody>
             {ventas.map((v) => {
-              const cliente = v.cliente_id
-                ? clientesById.get(v.cliente_id)
-                : undefined;
-              const empleado = v.empleado_id
-                ? empleadosById.get(v.empleado_id)
-                : undefined;
+              const cliente = v.clientes ?? undefined;
+              const empleado = v.empleados ?? undefined;
 
               const clienteTexto = cliente ? cliente.nombre : '—';
               const empleadoTexto = empleado

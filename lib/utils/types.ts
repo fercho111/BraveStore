@@ -30,6 +30,29 @@ export type CajaRow = {
 
 }
 
+export type CajaMovimientoRow = {
+  id: string;
+  tipo: 'CARGO' | 'PAGO';
+  monto: string | number;
+  medio: 'EFECTIVO' | 'TRANSFERENCIA' | 'OTRO' | null;
+  creado_en: string;
+  clientes: {
+    id: string;
+    nombre: string;
+  } | null;
+  ventas: {
+    id: string;
+    total: string | number;
+    pagado: string | number;
+    creado_en: string;
+  } | null;
+  empleado: {
+    id: string;
+    nombre: string | null;
+    rol: 'admin' | 'cajero';
+  } | null;
+};
+
 export type ProductoRow = {
   id: string;
   codigo: string;

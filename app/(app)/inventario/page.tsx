@@ -1,41 +1,33 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { cookies, headers } from 'next/headers';
 import { MovimientoRow } from '@/lib/utils/types';
 import { formatDateTime, formatMoney } from '@/lib/utils/helpers';
 
 export default async function InventarioPage() {
-  const supabase = await createClient();
+  const headerList = headers();
+  const host = headerList.get('x-forwarded-host') ?? headerList.get('host');
+  const protocol = headerList.get('x-forwarded-proto') ?? 'http';
+  const baseUrl = host ? `${protocol}://${host}` : '';
 
-  // Global kardex: latest movements first
-  const { data, error } = await supabase
-    .from('inventario')
-    .select(
-      `
-      id,
-      creado_en,
-      tipo,
-      cantidad_cambio,
-      costo_unitario_entrada,
-      referencia_venta_id,
-      productos:producto_id ( id, codigo, nombre_producto ),
-      empleados:empleado_id ( id, nombre )
-    `,
-    )
-    .order('creado_en', { ascending: false })
-    .limit(200);
+  const cookieHeader = cookies().toString();
+  const response = await fetch(`${baseUrl}/api/inventario`, {
+    cache: 'no-store',
+    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
+  });
 
-  if (error) {
+  if (!response.ok) {
     return (
       <>
         <h1 className="h4 fw-semibold">Movimientos</h1>
         <div className="alert alert-danger mt-3">
-          Error cargando inventario: {error.message}
+          Error cargando inventario.
         </div>
       </>
     );
   }
 
-  const movimientos: MovimientoRow[] = (data ?? []) as unknown as MovimientoRow[];
+  const payload = (await response.json()) as { movimientos: MovimientoRow[] };
+  const movimientos = payload.movimientos ?? [];
 
   return (
     <>

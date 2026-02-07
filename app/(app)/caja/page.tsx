@@ -29,7 +29,7 @@ type CajaMovimientoRow = {
 };
 
 type CajaPageProps = {
-  searchParams?: { tipo?: string };
+  searchParams?: { tipo?: string; from?: string; to?: string };
 };
 
 export default async function CajaPage({ searchParams }: CajaPageProps) {
@@ -41,6 +41,48 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
     filtroTipoRaw === 'CARGO' || filtroTipoRaw === 'PAGO'
       ? filtroTipoRaw
       : null;
+
+  const fromRaw = raw?.from?.trim();
+  const toRaw = raw?.to?.trim();
+
+
+  const now = new Date();
+  const startToday = new Date(now);
+  startToday.setHours(0, 0, 0, 0);
+
+  const startLast6h = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+
+  // Normalize strings for comparison
+  const fromIsoRaw = fromRaw ? new Date(fromRaw).toISOString() : null;
+  const toIsoRaw = toRaw ? new Date(toRaw).toISOString() : null;
+
+  const startTodayIso = startToday.toISOString();
+  const startLast6hIso = startLast6h.toISOString();
+  const nowIso = now.toISOString();
+
+  // Detect active filters
+  const esHoy =
+    fromIsoRaw === startTodayIso &&
+    toIsoRaw &&
+    new Date(toIsoRaw).getTime() - now.getTime() < 5_000; // allow small drift
+
+  const esUltimas6h =
+    fromIsoRaw === startLast6hIso &&
+    toIsoRaw &&
+    new Date(toIsoRaw).getTime() - now.getTime() < 5_000;
+
+  const sinRango = !fromRaw && !toRaw;
+
+
+  // We accept ISO-like strings (e.g. "2026-02-06T14:00").
+  // Convert to full ISO with seconds if needed.
+  const fromIso = fromRaw ? new Date(fromRaw).toISOString() : null;
+  const toIso = toRaw ? new Date(toRaw).toISOString() : null;
+
+  // Guard against invalid dates
+  const fromOk = fromIso && !Number.isNaN(Date.parse(fromIso));
+  const toOk = toIso && !Number.isNaN(Date.parse(toIso));
+
 
   const supabase = await createClient();
 
@@ -78,6 +120,16 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
     query = query.eq('tipo', filtroTipo);
   }
 
+
+  if (fromOk) {
+  query = query.gte('creado_en', fromIso!);
+  }
+
+  if (toOk) {
+    query = query.lt('creado_en', toIso!);
+  }
+
+
   const { data, error } = await query.limit(200);
 
 
@@ -112,6 +164,9 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
       : saldo < 0
       ? 'badge bg-success-subtle text-success-emphasis'
       : 'badge bg-secondary-subtle text-secondary-emphasis';
+
+
+
 
   return (
     <>
@@ -157,6 +212,41 @@ export default async function CajaPage({ searchParams }: CajaPageProps) {
               }
             >
               Pagos
+            </Link>
+          </div>
+
+          <div className="btn-group" role="group" aria-label="Filtro tiempo">
+            <Link
+              href={`/caja?${filtroTipo ? `tipo=${filtroTipo}&` : ''}from=${encodeURIComponent(startTodayIso)}&to=${encodeURIComponent(nowIso)}`}
+              className={
+                esHoy
+                  ? 'btn btn-primary'
+                  : 'btn btn-outline-light'
+              }
+            >
+              Hoy
+            </Link>
+
+            <Link
+              href={`/caja?${filtroTipo ? `tipo=${filtroTipo}&` : ''}from=${encodeURIComponent(startLast6hIso)}&to=${encodeURIComponent(nowIso)}`}
+              className={
+                esUltimas6h
+                  ? 'btn btn-primary'
+                  : 'btn btn-outline-light'
+              }
+            >
+              Últimas 6h
+            </Link>
+
+            <Link
+              href={`/caja${filtroTipo ? `?tipo=${filtroTipo}` : ''}`}
+              className={
+                sinRango
+                  ? 'btn btn-primary'
+                  : 'btn btn-outline-light'
+              }
+            >
+              Sin rango
             </Link>
           </div>
 
